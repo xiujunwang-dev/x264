@@ -1,0 +1,1348 @@
+--- a/common/base.c
++++ b/common/base.c
+@@ -478,6 +478,11 @@
+     param->b_fake_interlaced = 0;
+     param->i_frame_packing = -1;
+     param->i_alternative_transfer = 2; /* undef */
++    param->mctf.method = 0;
++    param->mctf.range = 2;
++    param->mctf.tau = 2;
++    param->mctf.qp = 27;
++    param->mctf.kernel = 8;
+     param->b_opencl = 0;
+     param->i_opencl_device = 0;
+     param->opencl_device_id = NULL;
+@@ -1398,6 +1403,16 @@
+         p->i_frame_packing = atoi(value);
+     OPT("stitchable")
+         p->b_stitchable = atobool(value);
++    OPT("mctf-method")
++        p->mctf.method = atoi(value);
++    OPT("mctf-range")
++        p->mctf.range = atoi(value);
++    OPT("mctf-tau")
++        p->mctf.tau = atoi(value);
++    OPT("mctf-qp")
++        p->mctf.qp = atoi(value);
++    OPT("mctf-kernel")
++        p->mctf.kernel = atoi(value);
+     OPT("opencl")
+         p->b_opencl = atobool( value );
+     OPT("opencl-clbin")
+@@ -1445,6 +1460,8 @@
+ 
+     if( p->b_opencl )
+         s += sprintf( s, "opencl=%d ", p->b_opencl );
++    if( p->mctf.method )
++        s += sprintf(s,"mctf=%d:%d:%d:%d ",p->mctf.method,p->mctf.range,p->mctf.tau,p->mctf.qp);
+     s += sprintf( s, "cabac=%d", p->b_cabac );
+     s += sprintf( s, " ref=%d", p->i_frame_reference );
+     s += sprintf( s, " deblock=%d:%d:%d", p->b_deblocking_filter,
+--- a/common/frame.c
++++ b/common/frame.c
+@@ -171,6 +171,9 @@
+             PREALLOC( frame->buffer_fld[p], luma_plane_size * SIZEOF_PIXEL );
+     }
+ 
++    if( !b_fdec && h->param.mctf.method )
++        PREALLOC(frame->mctf_buffer,frame->i_stride[0]*(frame->i_lines[0]+2*i_padv)*SIZEOF_PIXEL);
++
+     frame->b_duplicate = 0;
+ 
+     if( b_fdec ) /* fdec frame */
+@@ -263,6 +266,10 @@
+                 frame->filtered_fld[p][0] = frame->plane_fld[p] = frame->buffer_fld[p] + frame->i_stride[p] * i_padv + PADH_ALIGN;
+         }
+     }
++
++    for( int p=0;p<3;p++ ) frame->orig_plane[p]=frame->plane[p];
++    if( frame->mctf_buffer )
++        frame->plane_dnr[0]=frame->mctf_buffer+frame->i_stride[0]*i_padv+PADH_ALIGN;
+ 
+     if( b_fdec )
+     {
+@@ -551,6 +558,11 @@
+         for( int y = 0; y < i_padv; y++ )
+             memcpy( PPIXEL(-i_padh, i_height+y), PPIXEL(-i_padh, i_height-1), (i_width+2*i_padh) * SIZEOF_PIXEL );
+ #undef PPIXEL
++}
++
++void x264_frame_expand_mctf_border(x264_frame_t *frame)
++{
++    plane_expand_border(frame->orig_plane[0],frame->i_stride[0],frame->i_width[0],frame->i_lines[0],32,32,1,1,0);
+ }
+ 
+ void x264_frame_expand_border( x264_t *h, x264_frame_t *frame, int mb_y )
+@@ -786,6 +798,7 @@
+         frame = frame_new( h, b_fdec );
+     if( !frame )
+         return NULL;
++    if( !b_fdec && frame->orig_plane[0] ) frame->plane[0]=frame->orig_plane[0];
+     frame->b_last_minigop_bframe = 0;
+     frame->i_reference_count = 1;
+     frame->b_intra_calculated = 0;
+--- a/common/frame.h
++++ b/common/frame.h
+@@ -77,6 +77,9 @@
+     int     i_stride_lowres;
+     int     i_width_lowres;
+     int     i_lines_lowres;
++    pixel *orig_plane[3];
++    pixel *plane_dnr[3];
++    pixel *mctf_buffer;
+     pixel *plane[3];
+     pixel *plane_fld[3];
+     pixel *filtered[3][4]; /* plane[0], H, V, HV */
+@@ -224,6 +227,8 @@
+ #define x264_frame_copy_picture x264_template(frame_copy_picture)
+ int           x264_frame_copy_picture( x264_t *h, x264_frame_t *dst, x264_picture_t *src );
+ 
++#define x264_frame_expand_mctf_border x264_template(frame_expand_mctf_border)
++void x264_frame_expand_mctf_border(x264_frame_t *frame);
+ #define x264_frame_expand_border x264_template(frame_expand_border)
+ void          x264_frame_expand_border( x264_t *h, x264_frame_t *frame, int mb_y );
+ #define x264_frame_expand_border_filtered x264_template(frame_expand_border_filtered)
+--- /dev/null
++++ b/encoder/capture.h
+@@ -0,0 +1,59 @@
++/* Read-only fixed-state capture. Capture builds are NEVER used for timing. */
++#ifndef MCTF_REPLAY_CAPTURE_H
++#define MCTF_REPLAY_CAPTURE_H
++#include <stdio.h>
++#include <stdlib.h>
++#include <stdint.h>
++#include <string.h>
++
++static void replay_write(FILE *f, const void *data, size_t bytes)
++{
++    if (fwrite(data, 1, bytes, f) != bytes) { perror("MCTF capture write"); abort(); }
++}
++
++static void capture_mctf_state(x264_t *h, x264_frame_t *frame,
++                               x264_frame_t *references[10],
++                               int16_t (*ref_mv[10])[2], int num_refs,
++                               const int32_t offsets[10], int range, int qp,
++                               double strength, const uint8_t *confidence,
++                               const int32_t weights[3][1024])
++{
++    const char *directory = getenv("MCTF_CAPTURE_DIR");
++    if (!directory || !*directory) return;
++    if (confidence || BIT_DEPTH != 8 || range > 3) abort();
++    char path[4096];
++    snprintf(path, sizeof(path), "%s/frame-%06d.bin", directory, frame->i_frame);
++    FILE *f = fopen(path, "wbx");
++    if (!f) { perror(path); abort(); }
++    int cw = references[0]->i_width[0], ch = references[0]->i_lines[0];
++    int32_t header[12] = {0x4d435246, 1, frame->i_frame, h->param.i_width,
++        h->param.i_height, num_refs, cw, ch, h->mb.i_mb_stride,
++        h->mb.i_mb_height, qp, range};
++    replay_write(f, header, sizeof(header));
++    const int32_t inactive[256]={0};
++    for (int i=0; i<3; i++)
++        replay_write(f, i<range ? weights[i] : inactive, 256*sizeof(int32_t));
++    int32_t small_offsets[10], small_weights[3][1024] = {{0}};
++    int small_count=0, small_range=range>1?range-1:1;
++    for (int i=0; i<num_refs; i++)
++        if (abs(offsets[i])<=small_range) small_offsets[small_count++]=offsets[i];
++    if (small_count)
++        build_mctf_weight_table(small_weights, strength, small_count, small_range, qp, small_offsets, 0);
++    for (int i=0; i<3; i++) replay_write(f, small_weights[i], 256*sizeof(int32_t));
++    replay_write(f, offsets, num_refs*sizeof(int32_t));
++    for (int y=0; y<h->param.i_height; y++)
++        replay_write(f, frame->plane[0]+y*frame->i_stride[0], h->param.i_width);
++    for (int y=0; y<h->param.i_height; y++)
++        replay_write(f, frame->plane_dnr[0]+y*frame->i_stride[0], h->param.i_width);
++    for (int i=0; i<num_refs; i++)
++    {
++        int32_t frame_id = references[i]->i_frame;
++        replay_write(f, &frame_id, sizeof(frame_id));
++        replay_write(f, ref_mv[i], h->mb.i_mb_stride*h->mb.i_mb_height*2*sizeof(int16_t));
++        if (references[i]->i_width[0]!=cw || references[i]->i_lines[0]!=ch) abort();
++        for (int y=-32; y<ch+32; y++)
++            replay_write(f, references[i]->orig_plane[0]+y*references[i]->i_stride[0]-32, cw+64);
++    }
++    if (fclose(f)) { perror("MCTF capture close"); abort(); }
++}
++#endif
+--- a/encoder/encoder.c
++++ b/encoder/encoder.c
+@@ -422,6 +422,15 @@
+ 
+ static int validate_parameters( x264_t *h, int b_open )
+ {
++    if( h->param.mctf.method<0 || h->param.mctf.method>4
++        || (h->param.mctf.method && (BIT_DEPTH!=8 || h->param.b_interlaced
++        || h->param.i_bframe<3 || h->param.rc.i_lookahead<4 || h->param.rc.b_stat_read
++        || h->param.mctf.range<1 || h->param.mctf.range>2
++        || h->param.mctf.qp<17 || h->param.mctf.qp>40
++        || h->param.mctf.tau<0 || h->param.mctf.tau>255
++        || (h->param.mctf.kernel!=4 && h->param.mctf.kernel!=8))))
++    { x264_log(h,X264_LOG_ERROR,"unsupported research MCTF configuration\n"); return -1; }
++    if( h->param.mctf.method ) h->param.i_lookahead_threads=1;
+     if( !h->param.pf_log )
+     {
+         x264_log_internal( X264_LOG_ERROR, "pf_log not set! did you forget to call x264_param_default?\n" );
+@@ -3376,6 +3385,8 @@
+             h->param.i_height != 16 * h->mb.i_mb_height )
+             x264_frame_expand_border_mod16( h, fenc );
+ 
++        if( h->param.mctf.method ) x264_frame_expand_mctf_border(fenc);
++
+         fenc->i_frame = h->frames.i_input++;
+ 
+         if( fenc->i_frame == 0 )
+--- /dev/null
++++ b/encoder/mctf_envelope.h
+@@ -0,0 +1,85 @@
++/* Denominator envelopes for the fixed integer reference-omission operator.
++ * The existing radius certificate is a fast path. Additional interval tests
++ * retain the relationship between anchor displacement and normalization mass.
++ * Products use signed 128-bit integers; no approximate division is used. */
++#ifndef MCTF_ENVELOPE_H
++#define MCTF_ENVELOPE_H
++#include "mctf_support.h"
++
++static inline int mctf_envelope_feasible(int count, unsigned retained,
++        const int32_t *const tables[10], int tau)
++{
++    if (mctf_support_feasible(count, retained, tables, tau, 1)) return 1;
++    if (!retained || tau == 0) return 0;
++    int64_t n, d;
++    mctf_support_radius(count, retained, tables, &n, &d);
++    if (!n) return 0;
++    static const int slopes[8] = {2,4,8,16,32,64,128,255};
++    int64_t intercept[8] = {0};
++    for (int k=0; k<8; k++)
++        for (int j=0; j<count; j++) if (retained & (1U<<j))
++        {
++            int64_t best=INT64_MIN;
++            for (int x=0; x<256; x++)
++            {
++                int64_t value=(int64_t)tables[j][x]*(x-slopes[k]);
++                if (value>best) best=value;
++            }
++            intercept[k]+=best;
++        }
++    /* Each [lo,hi] covers possible |u_K-y|, with a common exact denominator. */
++    const int bins=16;
++    int64_t scale=bins*d;
++    for (int bin=0; bin<bins; bin++)
++    {
++        int64_t lo=bin*n, hi=(bin+1)*n, residual=0;
++        for (int j=0; j<count; j++) if (!(retained & (1U<<j)))
++        {
++            int64_t best=INT64_MIN;
++            for (int x=0; x<256; x++)
++            {
++                int64_t value=(int64_t)tables[j][x]*(x*scale+hi-tau*scale);
++                if (value>best) best=value;
++            }
++            residual+=best;
++        }
++        if ((__int128)residual <= (__int128)tau*MCTF_SUPPORT_W0*scale) continue;
++        int valid=0;
++        for (int k=0; k<8; k++)
++        {
++            int64_t c=slopes[k], numerator=c*MCTF_SUPPORT_W0-intercept[k];
++            if (c*scale<=hi || numerator<=0) continue;
++            /* D_K >= (c W0 - sum_K H_j(c))/(c-lo).
++             * The omitted residual is bounded at hi; D_K is bounded at lo. */
++            if ((__int128)residual*(c*scale-lo)
++                <= (__int128)tau*numerator*scale*scale)
++            { valid=1; break; }
++        }
++        if (!valid) return 0;
++    }
++    return 1;
++}
++
++static inline unsigned mctf_envelope_plan(int count,
++        const int32_t *const tables[10], int tau)
++{
++    int order[10]; int64_t moment[10];
++    for (int j=0; j<count; j++)
++    {
++        moment[j]=0;
++        for (int x=0; x<256; x++)
++            if ((int64_t)tables[j][x]*x>moment[j]) moment[j]=(int64_t)tables[j][x]*x;
++        int pos=j;
++        while (pos>0 && moment[order[pos-1]]<moment[j])
++        { order[pos]=order[pos-1]; pos--; }
++        order[pos]=j;
++    }
++    unsigned mask=0;
++    for (int k=0; k<count; k++)
++    {
++        if (mctf_envelope_feasible(count,mask,tables,tau)) return mask;
++        mask|=1U<<order[k];
++    }
++    return mask;
++}
++#endif
+--- /dev/null
++++ b/encoder/mctf_interpolation.h
+@@ -0,0 +1,106 @@
++/* Exact 8-bit single-axis specialization of separable MCTF interpolation. */
++#ifndef X264_MCTF_INTERPOLATION_H
++#define X264_MCTF_INTERPOLATION_H
++
++#include <stdint.h>
++#include <string.h>
++#include "mctf_neon.h"
++
++#ifndef X264_MCTF_PRIOR_CONTROL
++#define X264_MCTF_PRIOR_CONTROL 0
++#endif
++#if X264_MCTF_PRIOR_CONTROL
++#if !X264_MCTF_HAVE_NEON || !X264_MCTF_NEON_INTERPOLATION || X264_MCTF_ROW_REUSE
++#error Prior rolling control requires NEON interpolation without cross-block reuse
++#endif
++#include "mctf_prior_control.h"
++#endif
++
++#ifndef X264_MCTF_AXIS_SPECIALIZATION
++#define X264_MCTF_AXIS_SPECIALIZATION 1
++#endif
++
++static inline void x264_mctf_interpolate_axis_strides( uint8_t *dst, int dst_stride,
++                                                      const uint8_t *src, int src_stride,
++                                                      int width, int height,
++                                                      const int32_t filter[8], int vertical )
++{
++#if X264_MCTF_HAVE_NEON && X264_MCTF_NEON_INTERPOLATION
++    x264_mctf_interpolate_axis_neon( dst, dst_stride, src, src_stride, width, height, filter, vertical );
++    return;
++#endif
++    const int step = vertical ? src_stride : 1;
++    for( int y = 0; y < height; y++ )
++        for( int x = 0; x < width; x++ )
++        {
++            const uint8_t *p = src + y * src_stride + x - 2 * step;
++            int sum = filter[1] * p[0]
++                    + filter[2] * p[step]
++                    + filter[3] * p[2 * step]
++                    + filter[4] * p[3 * step]
++                    + filter[5] * p[4 * step]
++                    + filter[6] * p[5 * step];
++            /* The omitted identity pass contributes exactly a factor of 64:
++             * (64*sum + 2048) >> 12 == (sum + 32) >> 6, including negatives.
++             * No intermediate clipping or rounding is introduced. */
++            sum = (sum + 32) >> 6;
++            dst[y * dst_stride + x] = sum < 0 ? 0 : sum > 255 ? 255 : sum;
++        }
++}
++
++static inline void x264_mctf_interpolate_axis( uint8_t *dst, const uint8_t *src,
++                                              int stride, int width, int height,
++                                              const int32_t filter[8], int vertical )
++{
++    x264_mctf_interpolate_axis_strides( dst, stride, src, stride, width, height, filter, vertical );
++}
++
++/* src points to the integer motion-displaced origin in the padded reference;
++ * dst may be a compact tile. Both passes retain the original unrounded sums. */
++static inline void x264_mctf_interpolate_tile( uint8_t *dst, int dst_stride,
++                                              const uint8_t *src, int src_stride,
++                                              int width, int height,
++                                              const int32_t x_filter[8], const int32_t y_filter[8],
++                                              int x_integer, int y_integer )
++{
++    if( x_integer && y_integer )
++    {
++        for( int y = 0; y < height; y++ )
++            memcpy( dst + y * dst_stride, src + y * src_stride, width );
++        return;
++    }
++    if( X264_MCTF_AXIS_SPECIALIZATION && (x_integer || y_integer) )
++    {
++        x264_mctf_interpolate_axis_strides( dst, dst_stride, src, src_stride, width, height,
++                                           x_integer ? y_filter : x_filter, x_integer );
++        return;
++    }
++#if X264_MCTF_HAVE_NEON && X264_MCTF_NEON_INTERPOLATION
++#if X264_MCTF_PRIOR_CONTROL
++    x264_mctf_interpolate_prior_control( dst, dst_stride, src, src_stride, width, height, x_filter, y_filter );
++#else
++    x264_mctf_interpolate_both_neon( dst, dst_stride, src, src_stride, width, height, x_filter, y_filter );
++#endif
++    return;
++#endif
++    int32_t temp[23][16];
++    for( int y = 1; y < height + 7; y++ )
++        for( int x = 0; x < width; x++ )
++        {
++            const uint8_t *p = src + (y - 3) * src_stride + x - 3;
++            temp[y][x] = x_filter[1] * p[1] + x_filter[2] * p[2]
++                       + x_filter[3] * p[3] + x_filter[4] * p[4]
++                       + x_filter[5] * p[5] + x_filter[6] * p[6];
++        }
++    for( int y = 0; y < height; y++ )
++        for( int x = 0; x < width; x++ )
++        {
++            int sum = y_filter[1] * temp[y + 1][x] + y_filter[2] * temp[y + 2][x]
++                    + y_filter[3] * temp[y + 3][x] + y_filter[4] * temp[y + 4][x]
++                    + y_filter[5] * temp[y + 5][x] + y_filter[6] * temp[y + 6][x];
++            sum = (sum + 2048) >> 12;
++            dst[y * dst_stride + x] = sum < 0 ? 0 : sum > 255 ? 255 : sum;
++        }
++}
++
++#endif
+--- /dev/null
++++ b/encoder/mctf_neon.h
+@@ -0,0 +1,303 @@
++/* Exact 8-bit MCTF arithmetic on AArch64. Explicit experimental controls keep
++ * the scalar block-cache implementation available for direct ablations. */
++#ifndef X264_MCTF_NEON_H
++#define X264_MCTF_NEON_H
++
++#include <stdint.h>
++#include <limits.h>
++#include <string.h>
++
++#ifndef X264_MCTF_NEON_INTERPOLATION
++#define X264_MCTF_NEON_INTERPOLATION 0
++#endif
++#ifndef X264_MCTF_NEON_NORMALIZE
++#define X264_MCTF_NEON_NORMALIZE 0
++#endif
++#ifndef X264_MCTF_NEON_RECIPROCAL
++#define X264_MCTF_NEON_RECIPROCAL 0
++#endif
++#if X264_MCTF_NEON_RECIPROCAL && !X264_MCTF_NEON_NORMALIZE
++#error Reciprocal proposal requires exact NEON normalization
++#endif
++#ifndef X264_MCTF_STRIPE_COLUMNS
++#define X264_MCTF_STRIPE_COLUMNS 0
++#endif
++#ifndef X264_MCTF_ROW_REUSE
++#define X264_MCTF_ROW_REUSE 0
++#endif
++#ifndef X264_MCTF_REUSE_ACCOUNTING
++#define X264_MCTF_REUSE_ACCOUNTING 0
++#endif
++#if X264_MCTF_ROW_REUSE && (!X264_MCTF_NEON_INTERPOLATION || X264_MCTF_STRIPE_COLUMNS != 4)
++#error Row reuse requires the explicit four-column NEON stripe experiment
++#endif
++
++#if defined(__aarch64__) && defined(__ARM_NEON)
++#include <arm_neon.h>
++#define X264_MCTF_HAVE_NEON 1
++
++/* The fixed MCTF phase filters have positive coefficient sum <= 80 and
++ * negative coefficient magnitude sum <= 16. Thus every horizontal sum and
++ * partial sum is in [-4080,20400], including the identity phase. Preserve this
++ * unrounded signed value in int16; the second pass still uses int32. */
++static inline int16x8_t x264_mctf_neon_six_tap( const uint8_t *p, int step,
++                                               const int32_t filter[8] )
++{
++    int16x8_t sum = vmulq_n_s16( vreinterpretq_s16_u16( vmovl_u8( vld1_u8( p ) ) ), filter[1] );
++    for( int tap = 2; tap <= 6; tap++ )
++        sum = vmlaq_n_s16( sum, vreinterpretq_s16_u16( vmovl_u8( vld1_u8( p + (tap-1) * step ) ) ), filter[tap] );
++    return sum;
++}
++
++static inline void x264_mctf_interpolate_axis_neon( uint8_t *dst, int dst_stride,
++                                                   const uint8_t *src, int src_stride,
++                                                   int width, int height,
++                                                   const int32_t filter[8], int vertical )
++{
++    int step = vertical ? src_stride : 1;
++    for( int y = 0; y < height; y++ )
++    {
++        int x = 0;
++        for( ; x + 8 <= width; x += 8 )
++        {
++            int16x8_t sum = x264_mctf_neon_six_tap( src + y * src_stride + x - 2 * step, step, filter );
++            vst1_u8( dst + y * dst_stride + x, vqrshrun_n_s16( sum, 6 ) );
++        }
++        for( ; x < width; x++ )
++        {
++            const uint8_t *p = src + y * src_stride + x - 2 * step;
++            int sum = 0;
++            for( int tap = 1; tap <= 6; tap++ )
++                sum += filter[tap] * p[(tap-1) * step];
++            sum = (sum + 32) >> 6;
++            dst[y * dst_stride + x] = sum < 0 ? 0 : sum > 255 ? 255 : sum;
++        }
++    }
++}
++
++/* A cache contains only the exact final five horizontal rows of one preceding
++ * tile. A hit requires identical displaced source bytes, horizontal phase and
++ * width. Reference/column ownership and lifetime are supplied by the caller. */
++typedef struct
++{
++    int16_t tail[5][16];
++    const uint8_t *next_source;
++    const int32_t *x_filter;
++    int width;
++    int valid;
++} x264_mctf_row_cache_t;
++
++static inline int x264_mctf_interpolate_both_neon_cached( uint8_t *dst, int dst_stride,
++                                                   const uint8_t *src, int src_stride,
++                                                   int width, int height,
++                                                   const int32_t x_filter[8], const int32_t y_filter[8],
++                                                   x264_mctf_row_cache_t *cache )
++{
++    /* Output rows 0..height-1 use exactly height+5 horizontal rows. Unlike the
++     * scalar historical buffer, no unused halo rows are evaluated. */
++    int16_t temp[21][16];
++    int reused_rows = cache && cache->valid && cache->next_source == src
++                   && cache->x_filter == x_filter && cache->width == width ? 5 : 0;
++    if( reused_rows )
++        memcpy( temp, cache->tail, sizeof(cache->tail) );
++    for( int y = reused_rows; y < height + 5; y++ )
++    {
++        const uint8_t *p = src + (y - 2) * src_stride - 2;
++        int x = 0;
++        for( ; x + 8 <= width; x += 8 )
++            vst1q_s16( temp[y] + x, x264_mctf_neon_six_tap( p + x, 1, x_filter ) );
++        for( ; x < width; x++ )
++        {
++            int sum = 0;
++            for( int tap = 1; tap <= 6; tap++ )
++                sum += x_filter[tap] * p[x + tap - 1];
++            temp[y][x] = sum;
++        }
++    }
++    if( cache )
++    {
++        /* Initialize partial-row padding so copying all 16 lanes never carries
++         * indeterminate bytes, even though only width lanes are evaluated. */
++        for( int y = 0; y < 5; y++ )
++        {
++            memcpy( cache->tail[y], temp[height + y], width * sizeof(int16_t) );
++            memset( cache->tail[y] + width, 0, (16 - width) * sizeof(int16_t) );
++        }
++        cache->next_source = src + height * src_stride;
++        cache->x_filter = x_filter;
++        cache->width = width;
++        cache->valid = 1;
++    }
++    for( int y = 0; y < height; y++ )
++    {
++        int x = 0;
++        for( ; x + 8 <= width; x += 8 )
++        {
++            int16x8_t row = vld1q_s16( temp[y] + x );
++            int32x4_t lo = vmull_n_s16( vget_low_s16( row ), y_filter[1] );
++            int32x4_t hi = vmull_n_s16( vget_high_s16( row ), y_filter[1] );
++            for( int tap = 2; tap <= 6; tap++ )
++            {
++                row = vld1q_s16( temp[y + tap - 1] + x );
++                lo = vmlal_n_s16( lo, vget_low_s16( row ), y_filter[tap] );
++                hi = vmlal_n_s16( hi, vget_high_s16( row ), y_filter[tap] );
++            }
++            uint16x8_t rounded = vcombine_u16( vqrshrun_n_s32( lo, 12 ), vqrshrun_n_s32( hi, 12 ) );
++            vst1_u8( dst + y * dst_stride + x, vqmovn_u16( rounded ) );
++        }
++        for( ; x < width; x++ )
++        {
++            int sum = 0;
++            for( int tap = 1; tap <= 6; tap++ )
++                sum += y_filter[tap] * temp[y + tap - 1][x];
++            sum = (sum + 2048) >> 12;
++            dst[y * dst_stride + x] = sum < 0 ? 0 : sum > 255 ? 255 : sum;
++        }
++    }
++    return reused_rows;
++}
++
++static inline void x264_mctf_interpolate_both_neon( uint8_t *dst, int dst_stride,
++                                                   const uint8_t *src, int src_stride,
++                                                   int width, int height,
++                                                   const int32_t x_filter[8], const int32_t y_filter[8] )
++{
++    x264_mctf_interpolate_both_neon_cached( dst, dst_stride, src, src_stride, width, height,
++                                          x_filter, y_filter, NULL );
++}
++
++/* Check the actual weight tables once per frame. Nonnegative weights and
++ * Dmax <= INT32_MAX/256 bound N+D/2, q*D, and all legacy signed accumulations.
++ * Confidence in [0,255] cannot increase a nonnegative integer weight. */
++static inline int x264_mctf_neon_weights_safe( const int32_t *const tables[10], int refs )
++{
++    int64_t maximum_denominator = 65536;
++    for( int ref = 0; ref < refs; ref++ )
++    {
++        int32_t maximum = 0;
++        for( int delta = 0; delta < 256; delta++ )
++        {
++            int32_t weight = tables[ref][delta];
++            if( weight < 0 )
++                return 0;
++            if( weight > maximum )
++                maximum = weight;
++        }
++        maximum_denominator += maximum;
++    }
++    return maximum_denominator <= INT32_MAX / 256;
++}
++
++/* A/D is in [0,255.5]. Two binary32 conversions and correctly rounded FDIV
++ * have absolute quotient error < 0.0001, so truncation differs by at most one.
++ * Integer comparisons correct either direction. The returned quotient is
++ * EXACT; floating arithmetic only proposes a candidate. The caller establishes
++ * 1 <= D <= INT32_MAX/256 and 0 <= A <= 255.5*D. */
++#if X264_MCTF_NEON_RECIPROCAL
++/* This contract does not depend on a reciprocal instruction's error bound.
++ * Clamp any proposed quotient before multiplication: 255*D fits int32 under
++ * the caller's guard. Try one correction in either direction, then accept
++ * ONLY if q*D <= A and A-q*D < D. Otherwise divide the failing lanes exactly.
++ * The validated quotient/remainder inequalities prove the returned floor. */
++static inline uint32x4_t x264_mctf_neon_validate_quotient( uint32x4_t a, uint32x4_t d,
++                                                        uint32x4_t proposal )
++{
++    uint32x4_t q = vminq_u32( proposal, vdupq_n_u32( 255 ) );
++    uint32x4_t product = vmulq_u32( q, d );
++    q = vsubq_u32( q, vshrq_n_u32( vcgtq_u32( product, a ), 31 ) );
++    product = vmulq_u32( q, d );
++    q = vaddq_u32( q, vshrq_n_u32( vcgeq_u32( vsubq_u32( a, product ), d ), 31 ) );
++    product = vmulq_u32( q, d );
++    uint32x4_t invalid = vorrq_u32( vcgtq_u32( product, a ),
++                                  vcgeq_u32( vsubq_u32( a, product ), d ) );
++    if( vmaxvq_u32( invalid ) )
++    {
++        uint32_t numerator[4], denominator[4], result[4], failed[4];
++        vst1q_u32( numerator, a );
++        vst1q_u32( denominator, d );
++        vst1q_u32( result, q );
++        vst1q_u32( failed, invalid );
++        for( int lane = 0; lane < 4; lane++ )
++            if( failed[lane] )
++                result[lane] = numerator[lane] / denominator[lane];
++        q = vld1q_u32( result );
++    }
++    return q;
++}
++#endif
++
++static inline uint32x4_t x264_mctf_neon_divide_exact( uint32x4_t a, uint32x4_t d )
++{
++#if X264_MCTF_NEON_RECIPROCAL
++    float32x4_t estimate = vmulq_f32( vcvtq_f32_u32( a ), vrecpeq_f32( vcvtq_f32_u32( d ) ) );
++    return x264_mctf_neon_validate_quotient( a, d, vcvtq_u32_f32( estimate ) );
++#else
++    uint32x4_t q = vcvtq_u32_f32( vdivq_f32( vcvtq_f32_u32( a ), vcvtq_f32_u32( d ) ) );
++    uint32x4_t product = vmulq_u32( q, d );
++    q = vsubq_u32( q, vshrq_n_u32( vcgtq_u32( product, a ), 31 ) );
++    product = vmulq_u32( q, d );
++    return vaddq_u32( q, vshrq_n_u32( vcgeq_u32( vsubq_u32( a, product ), d ), 31 ) );
++#endif
++}
++
++static inline uint32x4_t x264_mctf_neon_load4( const uint8_t *source )
++{
++    uint32_t packed;
++    memcpy( &packed, source, sizeof(packed) );
++    return vmovl_u16( vget_low_u16( vmovl_u8( vcreate_u8( packed ) ) ) );
++}
++
++static inline void x264_mctf_filter_tile_neon( uint8_t *destination, int stride,
++                                               const uint8_t *source, const uint8_t prediction[][256],
++                                               int width, int height, int refs,
++                                               const int32_t *const tables[10], const int confidence[10] )
++{
++    for( int y = 0; y < height; y++ )
++    {
++        int x = 0;
++        for( ; x + 4 <= width; x += 4 )
++        {
++            uint32x4_t original = x264_mctf_neon_load4( source + y * stride + x );
++            uint32x4_t n = vshlq_n_u32( original, 16 ), d = vdupq_n_u32( 65536 );
++            for( int ref = 0; ref < refs; ref++ )
++            {
++                uint32x4_t value = x264_mctf_neon_load4( prediction[ref] + y * 16 + x );
++                uint32_t delta[4], weight[4];
++                vst1q_u32( delta, vabdq_u32( value, original ) );
++                for( int lane = 0; lane < 4; lane++ )
++                {
++                    weight[lane] = tables[ref][delta[lane]];
++                    if( confidence[ref] >= 0 && confidence[ref] < 255 )
++                        weight[lane] = ((int64_t)weight[lane] * confidence[ref] + 127) / 255;
++                }
++                uint32x4_t w = vld1q_u32( weight );
++                n = vmlaq_u32( n, w, value );
++                d = vaddq_u32( d, w );
++            }
++            uint32_t result[4];
++            vst1q_u32( result, x264_mctf_neon_divide_exact( vaddq_u32( n, vshrq_n_u32( d, 1 ) ), d ) );
++            for( int lane = 0; lane < 4; lane++ )
++                destination[y * stride + x + lane] = result[lane];
++        }
++        for( ; x < width; x++ )
++        {
++            int original = source[y * stride + x];
++            int32_t n = original * 65536, d = 65536;
++            for( int ref = 0; ref < refs; ref++ )
++            {
++                int value = prediction[ref][y * 16 + x];
++                int delta = value - original;
++                int32_t w = tables[ref][delta < 0 ? -delta : delta];
++                if( confidence[ref] >= 0 )
++                    w = ((int64_t)w * confidence[ref] + 127) / 255;
++                n += w * value;
++                d += w;
++            }
++            destination[y * stride + x] = (n + d / 2) / d;
++        }
++    }
++}
++#else
++#define X264_MCTF_HAVE_NEON 0
++#endif
++#endif
+--- /dev/null
++++ b/encoder/mctf_prior_control.h
+@@ -0,0 +1,165 @@
++/* -----------------------------------------------------------------------------
++The copyright in this software is being made available under the Clear BSD
++License, included below. No patent rights, trademark rights and/or
++other Intellectual Property Rights other than the copyrights concerning
++the Software are granted under this license.
++
++The Clear BSD License
++
++Copyright (c) 2019-2026, Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. & The VVenC Authors.
++All rights reserved.
++
++Redistribution and use in source and binary forms, with or without modification,
++are permitted (subject to the limitations in the disclaimer below) provided that
++the following conditions are met:
++
++     * Redistributions of source code must retain the above copyright notice,
++     this list of conditions and the following disclaimer.
++
++     * Redistributions in binary form must reproduce the above copyright
++     notice, this list of conditions and the following disclaimer in the
++     documentation and/or other materials provided with the distribution.
++
++     * Neither the name of the copyright holder nor the names of its
++     contributors may be used to endorse or promote products derived from this
++     software without specific prior written permission.
++
++NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
++THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
++CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
++PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
++CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
++EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
++PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
++IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++POSSIBILITY OF SUCH DAMAGE.
++
++
++------------------------------------------------------------------------------------------- */
++/* Controlled adaptation of the pinned VVenC six-tap rolling-row design.
++ * Copyright (c) 2026 x264 research contributors.
++ *
++ * Source: fraunhoferhhi/vvenc, de2443e4cef10330e62e64c7f9acbc7380509abc,
++ * source/Lib/CommonLib/arm/neon/MCTF_neon.cpp, applyFrac6Tap_8x_filter{1,2}D.
++ * The original notice is retained above. This is NOT a VVenC reproduction:
++ * inputs are uint8_t; horizontal sums remain unrounded; the vertical pass
++ * widens before pairwise additions and rounds only at the final 12-bit shift.
++ * The four-row loop and coefficient symmetry are prior implementation ideas.
++ * Do not use this control to claim new rolling rows or generic NEON arithmetic.
++ */
++#ifndef X264_MCTF_PRIOR_CONTROL_H
++#define X264_MCTF_PRIOR_CONTROL_H
++
++#include <stdint.h>
++#include <string.h>
++#include <arm_neon.h>
++
++static inline int x264_mctf_prior_symmetric( const int32_t f[8] )
++{
++    return f[1] == f[6] && f[2] == f[5] && f[3] == f[4];
++}
++
++static inline int16x8_t x264_mctf_prior_horizontal( const uint8_t *p,
++                                                 const int32_t f[8], int symmetric )
++{
++    int16x8_t v[6];
++    for( int tap = 0; tap < 6; tap++ )
++        v[tap] = vreinterpretq_s16_u16( vmovl_u8( vld1_u8( p + tap ) ) );
++    int16x8_t sum;
++    if( symmetric )
++    {
++        sum = vmulq_n_s16( vaddq_s16( v[0], v[5] ), f[1] );
++        sum = vmlaq_n_s16( sum, vaddq_s16( v[1], v[4] ), f[2] );
++        return vmlaq_n_s16( sum, vaddq_s16( v[2], v[3] ), f[3] );
++    }
++    if( f[1] == f[6] )
++        sum = vmulq_n_s16( vaddq_s16( v[0], v[5] ), f[1] );
++    else
++    {
++        sum = vmulq_n_s16( v[0], f[1] );
++        sum = vmlaq_n_s16( sum, v[5], f[6] );
++    }
++    sum = vmlaq_n_s16( sum, v[1], f[2] );
++    sum = vmlaq_n_s16( sum, v[4], f[5] );
++    sum = vmlaq_n_s16( sum, v[2], f[3] );
++    return vmlaq_n_s16( sum, v[3], f[4] );
++}
++
++/* Horizontal rows can be as large as 20400; summing two in int16 is unsafe.
++ * Widen before folding symmetric pairs. Every sum/product fits int32 under
++ * the same fixed 8-bit filter bounds as the selected implementation. */
++static inline uint8x8_t x264_mctf_prior_vertical( const int16x8_t rows[6],
++                                               const int32_t f[8], int symmetric )
++{
++    int32x4_t lo, hi;
++    if( symmetric )
++    {
++        lo = vmulq_n_s32( vaddl_s16( vget_low_s16( rows[0] ), vget_low_s16( rows[5] ) ), f[1] );
++        hi = vmulq_n_s32( vaddl_s16( vget_high_s16( rows[0] ), vget_high_s16( rows[5] ) ), f[1] );
++        lo = vmlaq_n_s32( lo, vaddl_s16( vget_low_s16( rows[1] ), vget_low_s16( rows[4] ) ), f[2] );
++        hi = vmlaq_n_s32( hi, vaddl_s16( vget_high_s16( rows[1] ), vget_high_s16( rows[4] ) ), f[2] );
++        lo = vmlaq_n_s32( lo, vaddl_s16( vget_low_s16( rows[2] ), vget_low_s16( rows[3] ) ), f[3] );
++        hi = vmlaq_n_s32( hi, vaddl_s16( vget_high_s16( rows[2] ), vget_high_s16( rows[3] ) ), f[3] );
++    }
++    else
++    {
++        lo = vmull_n_s16( vget_low_s16( rows[0] ), f[1] );
++        hi = vmull_n_s16( vget_high_s16( rows[0] ), f[1] );
++        for( int tap = 1; tap < 6; tap++ )
++        {
++            lo = vmlal_n_s16( lo, vget_low_s16( rows[tap] ), f[tap+1] );
++            hi = vmlal_n_s16( hi, vget_high_s16( rows[tap] ), f[tap+1] );
++        }
++    }
++    return vqmovn_u16( vcombine_u16( vqrshrun_n_s32( lo, 12 ), vqrshrun_n_s32( hi, 12 ) ) );
++}
++
++static inline void x264_mctf_interpolate_prior_control( uint8_t *dst, int ds,
++                                                       const uint8_t *src, int ss,
++                                                       int width, int height,
++                                                       const int32_t xf[8], const int32_t yf[8] )
++{
++    int x_symmetric = x264_mctf_prior_symmetric( xf );
++    int y_symmetric = x264_mctf_prior_symmetric( yf );
++    int x = 0;
++    for( ; x + 8 <= width; x += 8 )
++    {
++        int16x8_t rows[9];
++        for( int row = 0; row < 5; row++ )
++            rows[row] = x264_mctf_prior_horizontal( src + (row - 2) * ss + x - 2, xf, x_symmetric );
++        int y = 0;
++        for( ; y + 4 <= height; y += 4 )
++        {
++            for( int row = 0; row < 4; row++ )
++                rows[5 + row] = x264_mctf_prior_horizontal( src + (y + 3 + row) * ss + x - 2, xf, x_symmetric );
++            for( int row = 0; row < 4; row++ )
++                vst1_u8( dst + (y + row) * ds + x, x264_mctf_prior_vertical( rows + row, yf, y_symmetric ) );
++            for( int row = 0; row < 5; row++ )
++                rows[row] = rows[4 + row];
++        }
++        for( ; y < height; y++ )
++        {
++            rows[5] = x264_mctf_prior_horizontal( src + (y + 3) * ss + x - 2, xf, x_symmetric );
++            vst1_u8( dst + y * ds + x, x264_mctf_prior_vertical( rows, yf, y_symmetric ) );
++            for( int row = 0; row < 5; row++ )
++                rows[row] = rows[row + 1];
++        }
++    }
++    /* Exact scalar tail for non-eight-lane borders. Both public 720p sources
++     * and the 352-wide CIF timing sources use full 16-pixel tiles. */
++    for( ; x < width; x++ )
++        for( int y = 0; y < height; y++ )
++        {
++            int64_t value = 0;
++            for( int ty = 1; ty <= 6; ty++ )
++                for( int tx = 1; tx <= 6; tx++ )
++                    value += (int64_t)yf[ty] * xf[tx] * src[(y - 3 + ty) * ss + x - 3 + tx];
++            value = (value + 2048) >> 12;
++            dst[y * ds + x] = value < 0 ? 0 : value > 255 ? 255 : value;
++        }
++}
++
++#endif
+--- /dev/null
++++ b/encoder/mctf_support.h
+@@ -0,0 +1,126 @@
++/* Experimental joint weight/influence bounds for a fixed integer operator.
++ * Fractional programming is established; this is its discrete use in a
++ * temporal-reference omission certificate, not a priority claim.
++ * Assumptions: 0<=weights, <=10 references, W0+sum(max weight)<=INT32_MAX/256.
++ * Every result compares one common input state. */
++#ifndef MCTF_SUPPORT_H
++#define MCTF_SUPPORT_H
++#include <stdint.h>
++#include <limits.h>
++#define MCTF_SUPPORT_W0 65536LL
++
++/* Exact maximum normalized positive displacement over independent relaxed
++ * differences d_j in {0,...,255}. This relaxed set contains all actual signed
++ * displacements after taking absolute values. Dinkelbach updates use integers.
++ * On a defensive iteration limit, P/W0 is a valid conservative fallback. */
++static inline int mctf_support_radius(int count, unsigned mask,
++        const int32_t *const tables[10], int64_t *numerator, int64_t *denominator)
++{
++    int64_t n=0, d=MCTF_SUPPORT_W0, p=0;
++    for (int j=0; j<count; j++) if (mask & (1U<<j))
++    {
++        int64_t best=0;
++        for (int x=0; x<256; x++)
++            if ((int64_t)tables[j][x]*x > best) best=(int64_t)tables[j][x]*x;
++        p+=best;
++    }
++    for (int iteration=0; iteration<64; iteration++)
++    {
++        int64_t next_n=0, next_d=MCTF_SUPPORT_W0;
++        for (int j=0; j<count; j++) if (mask & (1U<<j))
++        {
++            int arg=0;
++            int64_t best=INT64_MIN;
++            for (int x=0; x<256; x++)
++            {
++                int64_t value=(int64_t)tables[j][x]*(x*d-n);
++                if (value>best) {best=value;arg=x;}
++            }
++            next_n+=(int64_t)tables[j][arg]*arg;
++            next_d+=tables[j][arg];
++        }
++        if (next_n*d==n*next_d)
++        {
++            *numerator=next_n;*denominator=next_d;return 1;
++        }
++        n=next_n;d=next_d;
++    }
++    *numerator=p;*denominator=MCTF_SUPPORT_W0;return 0;
++}
++
++/* With K empty, q_K=y. Exact support of each reference in the relaxed signed
++ * difference domain gives q_F-y <= tau iff sum max_d w(d)(2d-2tau-1)
++ * < (2tau+1)W0. Symmetry implies the lower condition; the strict upper edge
++ * is essential for half-up rounding. Actual finite sample bounds only reduce
++ * this domain. */
++static inline int mctf_support_empty(int count,
++        const int32_t *const tables[10], int tau)
++{
++    int64_t sum=0, threshold=2LL*tau+1;
++    for (int j=0; j<count; j++)
++    {
++        int64_t best=INT64_MIN;
++        for (int x=0; x<256; x++)
++        {
++            int64_t value=(int64_t)tables[j][x]*(2LL*x-threshold);
++            if(value>best)best=value;
++        }
++        sum+=best;
++    }
++    return sum < threshold*MCTF_SUPPORT_W0;
++}
++
++/* If r_K=N/D bounds |u_K-y|, then the omitted positive residual is at most
++ * sum_O max_d w_j(d)(d+r_K-tau). Bounding it by tau*W0 <= tau*D_K
++ * proves |u_F-u_K|<=tau. Integer half-up rounding preserves integer tau.
++ * Unlike separate moment/max bounds, this preserves the coupling between
++ * a difference, its weight, and the tolerance. */
++static inline int mctf_support_feasible(int count, unsigned retained,
++        const int32_t *const tables[10], int tau, int tight_radius)
++{
++    if (!retained) return mctf_support_empty(count,tables,tau);
++    int64_t n=0,d=MCTF_SUPPORT_W0;
++    if (tight_radius) mctf_support_radius(count,retained,tables,&n,&d);
++    else for (int j=0; j<count; j++) if (retained & (1U<<j))
++    {
++        int64_t best=0;
++        for(int x=0;x<256;x++)
++            if((int64_t)tables[j][x]*x>best)best=(int64_t)tables[j][x]*x;
++        n+=best;
++    }
++    int64_t sum=0;
++    for (int j=0; j<count; j++) if (!(retained & (1U<<j)))
++    {
++        int64_t best=INT64_MIN;
++        for (int x=0; x<256; x++)
++        {
++            int64_t value=(int64_t)tables[j][x]*(x*d+n-tau*d);
++            if(value>best)best=value;
++        }
++        sum+=best;
++    }
++    return sum <= tau*MCTF_SUPPORT_W0*d;
++}
++
++static inline unsigned mctf_support_plan(int count,
++        const int32_t *const tables[10], int tau, int tight_radius)
++{
++    int order[10];int64_t moment[10];
++    for(int j=0;j<count;j++)
++    {
++        moment[j]=0;
++        for(int x=0;x<256;x++)
++            if((int64_t)tables[j][x]*x>moment[j])moment[j]=(int64_t)tables[j][x]*x;
++        int pos=j;
++        while(pos>0 && moment[order[pos-1]]<moment[j]){order[pos]=order[pos-1];pos--;}
++        order[pos]=j;
++    }
++    unsigned mask=0;
++    for(int k=0;k<count;k++)
++    {
++        if(mctf_support_feasible(count,mask,tables,tau,tight_radius))return mask;
++        mask|=1U<<order[k];
++    }
++    return mask;
++}
++#endif
+--- /dev/null
++++ b/encoder/mctf_uniform8.h
+@@ -0,0 +1,78 @@
++/* Engineering follow-up: exact eight-pixel uniform-weight fusion.
++ * Include after mctf_interpolation.h. Caller retains the existing weight-sum
++ * safety guard; no approximate quotient or changed LUT is introduced. */
++#ifndef MCTF_UNIFORM8_H
++#define MCTF_UNIFORM8_H
++#if X264_MCTF_HAVE_NEON && X264_MCTF_NEON_NORMALIZE
++static inline void x264_mctf_filter_tile_uniform8_neon(
++        uint8_t *destination,int stride,const uint8_t *source,
++        const uint8_t prediction[][256],int width,int height,int refs,
++        const int32_t *const tables[10])
++{
++    if(!refs)
++    {
++        if(destination!=source)
++            for(int y=0;y<height;y++)memcpy(destination+y*stride,source+y*stride,width);
++        return;
++    }
++    for(int y=0;y<height;y++)
++    {
++        int x=0;
++        for(;x+8<=width;x+=8)
++        {
++            uint8x8_t original8=vld1_u8(source+y*stride+x);
++            uint16x8_t original16=vmovl_u8(original8);
++            uint32x4_t original0=vmovl_u16(vget_low_u16(original16));
++            uint32x4_t original1=vmovl_u16(vget_high_u16(original16));
++            uint32x4_t n0=vshlq_n_u32(original0,16),n1=vshlq_n_u32(original1,16);
++            uint32x4_t d0=vdupq_n_u32(65536),d1=d0;
++            for(int ref=0;ref<refs;ref++)
++            {
++                uint8x8_t value8=vld1_u8(prediction[ref]+y*16+x);
++                uint8x8_t delta=vabd_u8(value8,original8);
++                const int32_t *table=tables[ref];
++                uint32_t weights[8]={
++                    table[vget_lane_u8(delta,0)],table[vget_lane_u8(delta,1)],
++                    table[vget_lane_u8(delta,2)],table[vget_lane_u8(delta,3)],
++                    table[vget_lane_u8(delta,4)],table[vget_lane_u8(delta,5)],
++                    table[vget_lane_u8(delta,6)],table[vget_lane_u8(delta,7)]};
++                uint32x4_t w0=vld1q_u32(weights),w1=vld1q_u32(weights+4);
++                uint16x8_t value16=vmovl_u8(value8);
++                n0=vmlaq_u32(n0,w0,vmovl_u16(vget_low_u16(value16)));
++                n1=vmlaq_u32(n1,w1,vmovl_u16(vget_high_u16(value16)));
++                d0=vaddq_u32(d0,w0);d1=vaddq_u32(d1,w1);
++            }
++            uint32x4_t q0=x264_mctf_neon_divide_exact(vaddq_u32(n0,vshrq_n_u32(d0,1)),d0);
++            uint32x4_t q1=x264_mctf_neon_divide_exact(vaddq_u32(n1,vshrq_n_u32(d1,1)),d1);
++            uint16x8_t result16=vcombine_u16(vmovn_u32(q0),vmovn_u32(q1));
++            vst1_u8(destination+y*stride+x,vmovn_u16(result16));
++        }
++        for(;x<width;x++)
++        {
++            uint32_t original=source[y*stride+x],n=original*65536u,d=65536u;
++            for(int ref=0;ref<refs;ref++)
++            {
++                int value=prediction[ref][y*16+x],delta=value-(int)original;
++                uint32_t w=tables[ref][delta<0?-delta:delta];n+=w*value;d+=w;
++            }
++            destination[y*stride+x]=(n+d/2)/d;
++        }
++    }
++}
++
++static inline void x264_mctf_filter_tile_uniform8_dispatch(
++        uint8_t *destination,int stride,const uint8_t *source,
++        const uint8_t prediction[][256],int width,int height,int refs,
++        const int32_t *const tables[10],const int confidence[10])
++{
++    for(int ref=0;ref<refs;ref++)
++        if(confidence[ref]>=0 && confidence[ref]!=255)
++        {
++            x264_mctf_filter_tile_neon(destination,stride,source,prediction,
++                width,height,refs,tables,confidence);return;
++        }
++    x264_mctf_filter_tile_uniform8_neon(destination,stride,source,prediction,
++        width,height,refs,tables);
++}
++#endif
++#endif
+--- /dev/null
++++ b/encoder/mctf_x264.h
+@@ -0,0 +1,192 @@
++/* Research MCTF extension for the pinned, otherwise upstream x264 encoder.
++ * Author: Xiujun Wang. GPL-2.0-or-later, like the surrounding x264 source.
++ * Luma-only; original low-resolution lookahead samples remain unchanged. */
++#ifndef MCTF_X264_H
++#define MCTF_X264_H
++#define X264_MCTF_NEON_INTERPOLATION 1
++#define X264_MCTF_NEON_NORMALIZE 1
++#define X264_MCTF_PRIOR_CONTROL 1
++#include "mctf_interpolation.h"
++#include "mctf_uniform8.h"
++#include "mctf_envelope.h"
++
++static const int32_t mctf_phase[4][8]={
++    {0,0,0,64,0,0,0,0}, {0,2,-9,57,19,-7,2,0},
++    {0,1,-7,38,38,-7,1,0}, {0,2,-7,19,57,-9,2,0}};
++
++static void build_mctf_weight_table(int32_t weights[3][1024], double strength,
++        int count, int range, int qp, const int32_t offsets[10], int chroma)
++{
++    static const double relative[3][3]={{.85,.57,.41},{1.13,.97,.81},{.30,.30,.30}};
++    int present[3]={0}, pos=0, neg=0;
++    memset(weights,0,3*1024*sizeof(int32_t));
++    for (int j=0;j<count;j++)
++    { pos|=offsets[j]>0;neg|=offsets[j]<0;present[abs(offsets[j])-1]++; }
++    int directions=pos&&neg?2:1;
++    int row=directions==2&&count>=2*range?0:count>=range?1:2;
++    int sigma=(qp-10)*(qp-10)*9;
++    assert(!chroma && sigma>0);
++    for (int k=0;k<range;k++)
++    {
++        double available=X264_MIN(1.,(double)present[k]/directions);
++        double amplitude=strength*.4*relative[row][k]*available*65536.;
++        for (int x=0;x<256;x++)
++            weights[k][x]=(int32_t)(exp(-(double)x*x*16/(2.*sigma))*amplitude+.5);
++    }
++}
++
++static unsigned mctf_extrema_plan(int count,const int32_t *const tables[10],int tau)
++{
++    int order[10];int64_t moment[10],maximum[10],m=0,w=0,p=0;
++    for(int j=0;j<count;j++)
++    {
++        moment[j]=maximum[j]=0;
++        for(int x=0;x<256;x++)
++        { if((int64_t)tables[j][x]*x>moment[j])moment[j]=(int64_t)tables[j][x]*x;
++          if(tables[j][x]>maximum[j])maximum[j]=tables[j][x]; }
++        int pos=j;
++        while(pos>0&&moment[order[pos-1]]<moment[j]){order[pos]=order[pos-1];pos--;}
++        order[pos]=j;m+=moment[j];w+=maximum[j];
++    }
++    unsigned mask=0;
++    for(int k=0;k<count;k++)
++    {
++        int64_t a=X264_MAX(p-tau*65536LL,0);
++        if(65536*m+a*w<=tau*65536LL*65536)return mask;
++        int j=order[k];mask|=1U<<j;p+=moment[j];m-=moment[j];w-=maximum[j];
++    }
++    return mask;
++}
++
++#ifdef X264_MCTF_CAPTURE
++#include "capture.h"
++#endif
++
++/* Dedicated lowres fields keep temporal filtering independent of the
++ * encoder's bidirectional lookahead caches. In particular, stock lookahead
++ * cost evaluation does not support a future-only I-frame search. */
++static void mctf_motion(x264_t *h,x264_mb_analysis_t *a,x264_frame_t *anchor,
++        x264_frame_t *reference,int16_t (*motion)[2])
++{
++    int w=h->mb.i_mb_width,ht=h->mb.i_mb_height,stride=anchor->i_stride_lowres;
++    for(int y=ht-1;y>=0;y--)for(int x=w-1;x>=0;x--)
++    {
++        int mb=y*w+x,offset=8*(x+y*stride),limit=2*h->param.analyse.i_mv_range;
++        h->mb.i_mb_x=x;h->mb.i_mb_y=y;
++        h->mb.mv_min_spel[0]=X264_MAX(4*(-8*x-12),-limit);
++        h->mb.mv_max_spel[0]=X264_MIN(4*(8*(w-x-1)+12),limit-1);
++        h->mb.mv_min_spel[1]=X264_MAX(4*(-8*y-12),-limit);
++        h->mb.mv_max_spel[1]=X264_MIN(4*(8*(ht-y-1)+12),limit-1);
++        for(int k=0;k<2;k++)
++        {h->mb.mv_limit_fpel[0][k]=h->mb.mv_min_spel[k]>>2;
++         h->mb.mv_limit_fpel[1][k]=h->mb.mv_max_spel[k]>>2;}
++        x264_me_t m={0};
++        m.i_pixel=PIXEL_8x8;m.p_cost_mv=a->p_cost_mv;m.i_stride[0]=stride;
++        m.weight=x264_weight_none;m.p_fenc[0]=h->mb.pic.fenc_buf;
++        h->mc.copy[PIXEL_8x8](m.p_fenc[0],FENC_STRIDE,anchor->lowres[0]+offset,stride,8);
++        for(int k=0;k<4;k++)m.p_fref[k]=reference->lowres[k]+offset;
++        m.p_fref_w=m.p_fref[0];
++        ALIGNED_ARRAY_8(int16_t,mvc,[4],[2]);memset(mvc,0,sizeof(mvc));
++        int n=0;
++        if(x+1<w){mvc[n][0]=motion[mb+1][0];mvc[n++][1]=motion[mb+1][1];}
++        if(y+1<ht)
++        {
++            mvc[n][0]=motion[mb+w][0];mvc[n++][1]=motion[mb+w][1];
++            if(x>0){mvc[n][0]=motion[mb+w-1][0];mvc[n++][1]=motion[mb+w-1][1];}
++            if(x+1<w){mvc[n][0]=motion[mb+w+1][0];mvc[n++][1]=motion[mb+w+1][1];}
++        }
++        if(n<=1){m.mvp[0]=mvc[0][0];m.mvp[1]=mvc[0][1];}
++        else x264_median_mv(m.mvp,mvc[0],mvc[1],mvc[2]);
++        if(m.mvp[0]||m.mvp[1]||h->pixf.mbcmp[PIXEL_8x8](m.p_fenc[0],FENC_STRIDE,m.p_fref[0],stride)>=64)
++            x264_me_search(h,&m,mvc,n);
++        motion[mb][0]=m.mv[0];motion[mb][1]=m.mv[1];
++    }
++}
++
++static void mctf_filter_frame(x264_t *h,x264_mb_analysis_t *a,
++        x264_frame_t **frames,int b,int last)
++{
++    x264_frame_t *frame=frames[b],*refs[10];
++    int range=x264_clip3(h->param.mctf.range+(IS_X264_TYPE_I(frame->i_type)?1:0),1,3);
++    int count=0;int32_t offsets[10];int16_t (*mv[10])[2];
++    for(int j=X264_MAX(0,b-range);j<=X264_MIN(last,b+range);j++)
++    {
++        if(j==b||!frames[j]||frames[j]->i_frame!=frame->i_frame+j-b)continue;
++        refs[count]=frames[j];offsets[count++]=j-b;
++    }
++    if(!count)return;
++    int qp=h->param.mctf.qp;
++    double strength=IS_X264_TYPE_I(frame->i_type)?1.05:.63;
++    int32_t weights[3][1024];const int32_t *tables[10];
++    build_mctf_weight_table(weights,strength,count,range,qp,offsets,0);
++    int64_t summax=65536;
++    for(int j=0;j<count;j++)
++    {
++        tables[j]=weights[abs(offsets[j])-1];int max=0;
++        for(int x=0;x<256;x++){assert(tables[j][x]>=0);if(tables[j][x]>max)max=tables[j][x];}
++        summax+=max;
++    }
++    assert(summax<=INT32_MAX/256);
++    unsigned mask=(1U<<count)-1;
++    int method=h->param.mctf.method,tau=h->param.mctf.tau;
++    if(method==2)mask=mctf_extrema_plan(count,tables,tau);
++    if(method==3)mask=mctf_support_plan(count,tables,tau,1);
++    if(method==4)mask=mctf_envelope_plan(count,tables,tau);
++    int16_t (*motion)[2]=x264_malloc(count*h->mb.i_mb_count*2*sizeof(int16_t));
++    if(!motion){x264_log(h,X264_LOG_WARNING,"MCTF motion allocation failed; retaining source\n");return;}
++    for(int j=0;j<count;j++)
++    {
++        mv[j]=motion+j*h->mb.i_mb_count;
++        if(!(mask&(1U<<j)))continue;
++        mctf_motion(h,a,frame,refs[j],mv[j]);
++    }
++    const int stride=frame->i_stride[0];
++    /* Copy coding padding and retain stock x264's valid input border. */
++    for(int y=-PADV;y<frame->i_lines[0]+PADV;y++)
++        memcpy(frame->plane_dnr[0]+y*stride-PADH_ALIGN,
++               frame->orig_plane[0]+y*stride-PADH_ALIGN,stride);
++    for(int y=0;y<h->param.i_height;y+=16)for(int x=0;x<h->param.i_width;x+=16)
++    {
++        int width=X264_MIN(16,h->param.i_width-x),height=X264_MIN(16,h->param.i_height-y);
++        int mb=(y/16)*h->mb.i_mb_stride+x/16,n=0;
++        uint8_t prediction[10][256];const int32_t *selected[10];int confidence[10];
++        for(int j=0;j<count;j++)if(mask&(1U<<j))
++        {
++            int dx=mv[j][mb][0]*8,dy=mv[j][mb][1]*8;
++            int ix=dx>>4,iy=dy>>4,xf=(dx&15)>>2,yf=(dy&15)>>2;
++            assert(x+ix-(xf?2:0)>=-32&&y+iy-(yf?2:0)>=-32);
++            assert(x+ix+width+(xf?3:0)<=refs[j]->i_width[0]+32);
++            assert(y+iy+height+(yf?3:0)<=refs[j]->i_lines[0]+32);
++            const uint8_t *src=(uint8_t *)refs[j]->orig_plane[0]+(y+iy)*refs[j]->i_stride[0]+x+ix;
++            x264_mctf_interpolate_tile(prediction[n],16,src,refs[j]->i_stride[0],width,height,
++                                      mctf_phase[xf],mctf_phase[yf],!xf,!yf);
++            selected[n]=tables[j];confidence[n++]=-1;
++        }
++        uint8_t *dst=(uint8_t *)frame->plane_dnr[0]+y*stride+x;
++        const uint8_t *src=(uint8_t *)frame->orig_plane[0]+y*stride+x;
++        if(h->param.mctf.kernel==8)
++            x264_mctf_filter_tile_uniform8_dispatch(dst,stride,src,prediction,width,height,n,selected,confidence);
++        else x264_mctf_filter_tile_neon(dst,stride,src,prediction,width,height,n,selected,confidence);
++    }
++#ifdef X264_MCTF_CAPTURE
++    assert(method==1);
++    capture_mctf_state(h,frame,refs,mv,count,offsets,range,qp,strength,NULL,weights);
++#endif
++    frame->plane[0]=frame->plane_dnr[0];
++    x264_frame_expand_border_mod16(h,frame);
++    x264_free(motion);
++}
++
++static void mctf_minigop(x264_t *h,int bframes)
++{
++    if(!h->param.mctf.method)return;
++    x264_frame_t *frames[X264_LOOKAHEAD_MAX+2]={0};
++    int last=X264_MIN(h->lookahead->next.i_size,X264_LOOKAHEAD_MAX);
++    frames[0]=h->lookahead->last_nonb;
++    memcpy(frames+1,h->lookahead->next.list,last*sizeof(*frames));
++    x264_mb_analysis_t a;lowres_context_init(h,&a);
++    for(int b=1;b<=bframes+1;b++)
++        if(IS_X264_TYPE_I(frames[b]->i_type)||frames[b]->i_type==X264_TYPE_P)
++            mctf_filter_frame(h,&a,frames,b,last);
++}
++#endif
+--- a/encoder/slicetype.c
++++ b/encoder/slicetype.c
+@@ -1742,6 +1742,8 @@
+ #endif
+ }
+ 
++#include "mctf_x264.h"
++
+ void x264_slicetype_decide( x264_t *h )
+ {
+     x264_frame_t *frames[X264_BFRAME_MAX+2];
+@@ -1934,6 +1936,8 @@
+         }
+     }
+ 
++    mctf_minigop(h,bframes);
++
+     /* Analyse for weighted P frames */
+     if( !h->param.rc.b_stat_read && h->lookahead->next.list[bframes]->i_type == X264_TYPE_P
+         && h->param.analyse.i_weighted_pred >= X264_WEIGHTP_SIMPLE )
+--- a/version.sh
++++ b/version.sh
+@@ -1,28 +1,3 @@
+ #!/bin/sh
+-
+-cd "$(dirname "$0")" >/dev/null && [ -f x264.h ] || exit 1
+-
+-api="$(grep '#define X264_BUILD' < x264.h | sed 's/^.* \([1-9][0-9]*\).*$/\1/')"
+-ver="x"
+-version=""
+-
+-if [ -d .git ] && command -v git >/dev/null 2>&1 ; then
+-    localver="$(($(git rev-list HEAD | wc -l)))"
+-    if [ "$localver" -gt 1 ] ; then
+-        ver_diff="$(($(git rev-list origin/master..HEAD | wc -l)))"
+-        ver="$((localver-ver_diff))"
+-        echo "#define X264_REV $ver"
+-        echo "#define X264_REV_DIFF $ver_diff"
+-        if [ "$ver_diff" -ne 0 ] ; then
+-            ver="$ver+$ver_diff"
+-        fi
+-        if git status | grep -q "modified:" ; then
+-            ver="${ver}M"
+-        fi
+-        ver="$ver $(git rev-list -n 1 HEAD | cut -c 1-7)"
+-        version=" r$ver"
+-    fi
+-fi
+-
+-echo "#define X264_VERSION \"$version\""
+-echo "#define X264_POINTVER \"0.$api.$ver\""
++echo '#define X264_VERSION " r3223 0480cb0"'
++echo '#define X264_POINTVER "0.164.3223 0480cb0"'
+--- a/x264.c
++++ b/x264.c
+@@ -1058,6 +1058,11 @@
+     { "ref",                  required_argument, NULL, 'r' },
+     { "asm",                  required_argument, NULL, 0 },
+     { "no-asm",               no_argument,       NULL, 0 },
++    { "mctf-method", required_argument, NULL, 0 },
++    { "mctf-range", required_argument, NULL, 0 },
++    { "mctf-tau", required_argument, NULL, 0 },
++    { "mctf-qp", required_argument, NULL, 0 },
++    { "mctf-kernel", required_argument, NULL, 0 },
+     { "opencl",               no_argument,       NULL, 1 },
+     { "opencl-clbin",         required_argument, NULL, 0 },
+     { "opencl-device",        required_argument, NULL, 0 },
+--- a/x264.h
++++ b/x264.h
+@@ -564,6 +564,9 @@
+      * each part, and stitching them back together will result in identical SPS/PPS. This is necessary for stitching
+      * with container formats that don't allow multiple SPS/PPS. */
+     int b_stitchable;
++
++    /* Experimental MCTF extension; disabled by default. */
++    struct { int method, range, tau, qp, kernel; } mctf;
+ 
+     int b_opencl;            /* use OpenCL when available */
+     int i_opencl_device;     /* specify count of GPU devices to skip, for CLI users */

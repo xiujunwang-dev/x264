@@ -1,0 +1,94 @@
+{
+  "passed": true,
+  "source_files_verified": 278,
+  "upstream": {
+    "repository": "https://code.videolan.org/videolan/x264.git",
+    "commit": "0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee",
+    "archive_sha256": "0d384c39822c5c3e1e8b59799e62653cf36ef8f703e6b87e9998d287be67a189",
+    "tree": "0b8e15dd14ad8d2fb8905df7785003b475236315",
+    "commit_metadata": "commit 0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee\nAuthor:     Changsheng Wu <wu.changsheng@sanechips.com.cn>\nAuthorDate: Sun Aug 31 23:11:08 2025 +0800\nCommit:     Changsheng Wu <wu.changsheng@sanechips.com.cn>\nCommitDate: Wed Sep 10 09:40:56 2025 +0800\n\n    riscv64: add compile support\n    \n    This patch is a basic enablement that supports riscv64 compile.\n    We are working on adding vector optimizations with riscv64 rvv\n    extensions, and will push the implementations later.\n",
+    "source": "existing local git object exported with git archive; no local patch commits included"
+  },
+  "source_manifest_sha256": "78949a0dcf807568a6a9b9ee96b5c0a07cf48827d2ddf974c4aa338fdd3a7faa",
+  "patch_sha256": "37968ba935277379d02d5b62eccd923e3842d219d649b425bbe68c6275598ac7",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "builds": {
+    "upstream": {
+      "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/patch_rebuild/upstream/x264",
+      "sha256": "6a62a1975e5c58df9c68ea59bff3f5e8829f58857859e98935d71e31d0bb6409",
+      "configure_command": [
+        "./configure",
+        "--host=aarch64-apple-darwin",
+        "--bit-depth=8",
+        "--chroma-format=420",
+        "--enable-static",
+        "--disable-opencl",
+        "--disable-lavf",
+        "--disable-swscale",
+        "--disable-ffms",
+        "--disable-avs",
+        "--disable-gpac"
+      ],
+      "config_mak_sha256": "0e6ba87e8765e77c2fa0453d6092a6bc82cfe42d9b9f701889885c8a5b63293e"
+    },
+    "source": {
+      "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/patch_rebuild/source/x264",
+      "sha256": "ec43f61098709d3f6e62784dc35a8003a00edd8088a998d6df42c5769c079ca8",
+      "configure_command": [
+        "./configure",
+        "--host=aarch64-apple-darwin",
+        "--bit-depth=8",
+        "--chroma-format=420",
+        "--enable-static",
+        "--disable-opencl",
+        "--disable-lavf",
+        "--disable-swscale",
+        "--disable-ffms",
+        "--disable-avs",
+        "--disable-gpac"
+      ],
+      "config_mak_sha256": "0e6ba87e8765e77c2fa0453d6092a6bc82cfe42d9b9f701889885c8a5b63293e"
+    },
+    "capture": {
+      "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/patch_rebuild/capture/x264",
+      "sha256": "5e539d6e5a3fb54fcd0a8703b01203a6a0e97a44e22b8dcec746cd62b1d7965d",
+      "configure_command": [
+        "./configure",
+        "--host=aarch64-apple-darwin",
+        "--bit-depth=8",
+        "--chroma-format=420",
+        "--enable-static",
+        "--disable-opencl",
+        "--disable-lavf",
+        "--disable-swscale",
+        "--disable-ffms",
+        "--disable-avs",
+        "--disable-gpac",
+        "--extra-cflags=-DX264_MCTF_CAPTURE=1"
+      ],
+      "config_mak_sha256": "9081bc1ffb710e6eee46a56ad07b05a132585981abe0864aefc0b7c19d5ff9f1"
+    },
+    "sanitizer": {
+      "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/patch_rebuild/sanitizer/x264",
+      "sha256": "04a595e6e2daa5b537047ddb1dbc6e81bb653c2a1d9632c4385d4d1c0c004578",
+      "configure_command": [
+        "./configure",
+        "--host=aarch64-apple-darwin",
+        "--bit-depth=8",
+        "--chroma-format=420",
+        "--enable-static",
+        "--disable-opencl",
+        "--disable-lavf",
+        "--disable-swscale",
+        "--disable-ffms",
+        "--disable-avs",
+        "--disable-gpac",
+        "--disable-asm",
+        "--extra-cflags=-O1 -g -fsanitize=address -fno-sanitize-recover=all",
+        "--extra-ldflags=-fsanitize=address"
+      ],
+      "config_mak_sha256": "ce72256c25f1a7e29db5709f88d84413968659e4ba35f78d6932782310641184"
+    }
+  }
+}

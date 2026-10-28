@@ -1,0 +1,8 @@
+{
+  "repository": "https://code.videolan.org/videolan/x264.git",
+  "commit": "0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee",
+  "archive_sha256": "0d384c39822c5c3e1e8b59799e62653cf36ef8f703e6b87e9998d287be67a189",
+  "tree": "0b8e15dd14ad8d2fb8905df7785003b475236315",
+  "commit_metadata": "commit 0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee\nAuthor:     Changsheng Wu <wu.changsheng@sanechips.com.cn>\nAuthorDate: Sun Aug 31 23:11:08 2025 +0800\nCommit:     Changsheng Wu <wu.changsheng@sanechips.com.cn>\nCommitDate: Wed Sep 10 09:40:56 2025 +0800\n\n    riscv64: add compile support\n    \n    This patch is a basic enablement that supports riscv64 compile.\n    We are working on adding vector optimizations with riscv64 rvv\n    extensions, and will push the implementations later.\n",
+  "source": "existing local git object exported with git archive; no local patch commits included"
+}

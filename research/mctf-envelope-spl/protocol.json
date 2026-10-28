@@ -1,0 +1,295 @@
+{
+  "created_utc": "2026-10-28T04:17:15.847305+00:00",
+  "status": "Frozen before the new complete-curve and fixed-state timing outcomes",
+  "platform": "Official x264 r3223, commit 0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee, plus isolated MCTF extension",
+  "author": "Xiujun Wang",
+  "sources": [
+    {
+      "id": "blue_sky",
+      "file": "blue_sky_1080p25.y4m",
+      "sha256": "869e5a5c23d09b9651bd88f0196688eda8032e67b80b8a863d7573cbe86e72a7",
+      "bytes": 674958138,
+      "width": 1920,
+      "height": 1080,
+      "frames": 217,
+      "frame_bytes": 3110400,
+      "fps_n": 25,
+      "fps_d": 1,
+      "header": "YUV4MPEG2 W1920 H1080 F25:1 Ip A1:1",
+      "url": "https://media.xiph.org/video/derf/y4m/blue_sky_1080p25.y4m"
+    },
+    {
+      "id": "pedestrian",
+      "file": "pedestrian_area_1080p25.y4m",
+      "sha256": "1c18cd50fec7dcfa6087564ed56343a99ff955ecfca70de91a5dbedae329353a",
+      "bytes": 1166402286,
+      "width": 1920,
+      "height": 1080,
+      "frames": 375,
+      "frame_bytes": 3110400,
+      "fps_n": 25,
+      "fps_d": 1,
+      "header": "YUV4MPEG2 W1920 H1080 F25:1 Ip A1:1",
+      "url": "https://media.xiph.org/video/derf/y4m/pedestrian_area_1080p25.y4m"
+    },
+    {
+      "id": "crowd",
+      "file": "crowd_run_1080p50.y4m",
+      "sha256": "e056e01fc13906dd9a84f5cc686a36888436379476577965a0866821caaf55c8",
+      "bytes": 1555203036,
+      "width": 1920,
+      "height": 1080,
+      "frames": 500,
+      "frame_bytes": 3110400,
+      "fps_n": 50,
+      "fps_d": 1,
+      "header": "YUV4MPEG2 W1920 H1080 F50:1 Ip A1:1",
+      "url": "https://media.xiph.org/video/derf/y4m/crowd_run_1080p50.y4m"
+    }
+  ],
+  "development": [
+    {
+      "id": "foreman",
+      "file": "foreman.y4m",
+      "sha256": "b0e3c35eff9fe1da91521a02eb9f0e3ef4bc5aec341ecef1567cd87f1711267b",
+      "bytes": 45621044,
+      "width": 352,
+      "height": 288,
+      "frames": 300,
+      "frame_bytes": 152064,
+      "fps_n": 30000,
+      "fps_d": 1001,
+      "header": "YUV4MPEG2 W352 H288 F30000:1001 Ip A128:117"
+    },
+    {
+      "id": "mobile",
+      "file": "mobile.y4m",
+      "sha256": "8b32924ea00ef3bd52f7ddafd3ceb55d2bb331610b59957c5c3cc9628f9e0d90",
+      "bytes": 45621054,
+      "width": 352,
+      "height": 288,
+      "frames": 300,
+      "frame_bytes": 152064,
+      "fps_n": 30000,
+      "fps_d": 1001,
+      "header": "YUV4MPEG2 W352 H288 F30000:1001 Ip A128:117 C420mpeg2"
+    },
+    {
+      "id": "oldtown",
+      "file": "oldtown.y4m",
+      "sha256": "68bb1fed8f0de13bf7152a505f5a7051aebfdccd5a1e5b1defb32b5e02e963f4",
+      "bytes": 165888755,
+      "width": 1280,
+      "height": 720,
+      "frames": 120,
+      "frame_bytes": 1382400,
+      "fps_n": 50,
+      "fps_d": 1,
+      "header": "YUV4MPEG2 W1280 H720 F50:1 Ip A1:1"
+    }
+  ],
+  "source_policy": "All six contents were previously observed in earlier work. This is x264 replication, not an independent unobserved-content confirmation. A 32-frame integration smoke encode preceded the freeze.",
+  "methods": {
+    "full": [
+      1,
+      2,
+      8
+    ],
+    "extrema": [
+      2,
+      2,
+      8
+    ],
+    "support": [
+      3,
+      2,
+      8
+    ],
+    "envelope": [
+      4,
+      2,
+      8
+    ],
+    "window1": [
+      1,
+      1,
+      8
+    ],
+    "full4": [
+      1,
+      2,
+      4
+    ],
+    "off": [
+      0,
+      2,
+      8
+    ]
+  },
+  "primary": "envelope",
+  "tau": 2,
+  "fixed_method": "16 interval denominator envelope; slopes 2,4,8,16,32,64,128,255; no fitting to replication outcomes",
+  "builds": {
+    "upstream": {
+      "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/upstream/x264",
+      "sha256": "6a62a1975e5c58df9c68ea59bff3f5e8829f58857859e98935d71e31d0bb6409",
+      "configure_command": [
+        "./configure",
+        "--host=aarch64-apple-darwin",
+        "--bit-depth=8",
+        "--chroma-format=420",
+        "--enable-static",
+        "--disable-opencl",
+        "--disable-lavf",
+        "--disable-swscale",
+        "--disable-ffms",
+        "--disable-avs",
+        "--disable-gpac"
+      ],
+      "config_mak_sha256": "0e6ba87e8765e77c2fa0453d6092a6bc82cfe42d9b9f701889885c8a5b63293e",
+      "version": "x264 0.164.3223 0480cb0\nbuilt on Oct 28 2026, clang: 21.0.0 (clang-2100.1.1.101)\nx264 configuration: --chroma-format=i420\nlibx264 configuration: --chroma-format=i420\nx264 license: GPL version 2 or later\n"
+    },
+    "source": {
+      "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/source/x264",
+      "sha256": "ec43f61098709d3f6e62784dc35a8003a00edd8088a998d6df42c5769c079ca8",
+      "configure_command": [
+        "./configure",
+        "--host=aarch64-apple-darwin",
+        "--bit-depth=8",
+        "--chroma-format=420",
+        "--enable-static",
+        "--disable-opencl",
+        "--disable-lavf",
+        "--disable-swscale",
+        "--disable-ffms",
+        "--disable-avs",
+        "--disable-gpac"
+      ],
+      "config_mak_sha256": "0e6ba87e8765e77c2fa0453d6092a6bc82cfe42d9b9f701889885c8a5b63293e",
+      "version": "x264 0.164.3223 0480cb0\nbuilt on Oct 28 2026, clang: 21.0.0 (clang-2100.1.1.101)\nx264 configuration: --chroma-format=i420\nlibx264 configuration: --chroma-format=i420\nx264 license: GPL version 2 or later\n"
+    },
+    "capture": {
+      "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/capture/x264",
+      "sha256": "5e539d6e5a3fb54fcd0a8703b01203a6a0e97a44e22b8dcec746cd62b1d7965d",
+      "configure_command": [
+        "./configure",
+        "--host=aarch64-apple-darwin",
+        "--bit-depth=8",
+        "--chroma-format=420",
+        "--enable-static",
+        "--disable-opencl",
+        "--disable-lavf",
+        "--disable-swscale",
+        "--disable-ffms",
+        "--disable-avs",
+        "--disable-gpac",
+        "--extra-cflags=-DX264_MCTF_CAPTURE=1"
+      ],
+      "config_mak_sha256": "9081bc1ffb710e6eee46a56ad07b05a132585981abe0864aefc0b7c19d5ff9f1",
+      "version": "x264 0.164.3223 0480cb0\nbuilt on Oct 28 2026, clang: 21.0.0 (clang-2100.1.1.101)\nx264 configuration: --chroma-format=i420\nlibx264 configuration: --chroma-format=i420\nx264 license: GPL version 2 or later\n"
+    },
+    "sanitizer": {
+      "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/sanitizer/x264",
+      "sha256": "f7172246ec779ffaa61755866f39fa0454b926439202afba1e237ee7b134d7f2",
+      "configure_command": [
+        "./configure",
+        "--host=aarch64-apple-darwin",
+        "--bit-depth=8",
+        "--chroma-format=420",
+        "--enable-static",
+        "--disable-opencl",
+        "--disable-lavf",
+        "--disable-swscale",
+        "--disable-ffms",
+        "--disable-avs",
+        "--disable-gpac",
+        "--disable-asm",
+        "--extra-cflags=-O1 -g -fsanitize=address -fno-sanitize-recover=all",
+        "--extra-ldflags=-fsanitize=address"
+      ],
+      "config_mak_sha256": "ce72256c25f1a7e29db5709f88d84413968659e4ba35f78d6932782310641184",
+      "version": "x264 0.164.3223 0480cb0\nbuilt on Oct 28 2026, clang: 21.0.0 (clang-2100.1.1.101)\nx264 configuration: --chroma-format=i420\nlibx264 configuration: --chroma-format=i420\nx264 license: GPL version 2 or later\n"
+    }
+  },
+  "code": {
+    "run_study.py": "ba8d3481603932169eef9f31f723671f5e98e709435a4b9d76650e33f915e624",
+    "replay.c": "273f8a10ee4ea6d5858ff5483082b734c613c155d0e0f61f811bfd9893102db5",
+    "helpers.py": "13e2466ee6805c4d4b18c6d3987af2d01bc190b3995ebd850c2cb396ce2e3dfc",
+    "metrics.py": "a68f5a75eeb9d40fc3e0148b26e16754fd1b6b3fe3b725f582d4a40b150b2045"
+  },
+  "source_manifest_sha256": "78949a0dcf807568a6a9b9ee96b5c0a07cf48827d2ddf974c4aa338fdd3a7faa",
+  "replay_binary": {
+    "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/replay",
+    "sha256": "a9a26906e697010e93bfc7ec4134b285e57b76138700756fb285cadd3500ef15"
+  },
+  "end_to_end": {
+    "methods": [
+      "full",
+      "extrema",
+      "support",
+      "envelope",
+      "window1",
+      "full4",
+      "off"
+    ],
+    "crfs": [
+      22,
+      27,
+      32,
+      37
+    ],
+    "preset": "medium",
+    "threads": 1,
+    "warmups": "One CRF27 run per method and content",
+    "crf27_formal_repetitions": 3,
+    "curve": "One complete four-point curve per method and content",
+    "jobs_per_source": 49,
+    "order": "Rotate methods by CRF index and extra repeat index",
+    "timing": "Complete process wall time including startup and the same local original source file",
+    "metrics": "Strict complete FFmpeg decode, exact integer Y/U/V SSE, PSNR-Y, PCHIP BD-rate on the common quality interval without extrapolation",
+    "aggregation": "Median paired CRF27 percentage changes per content, then equal-content means; all observations retained"
+  },
+  "fixed_state": {
+    "methods": [
+      "full",
+      "moment",
+      "joint",
+      "support",
+      "window_fixed",
+      "window_real",
+      "window_checked",
+      "envelope",
+      "full4"
+    ],
+    "tolerances": [
+      1,
+      2,
+      3
+    ],
+    "warmup_rounds": 1,
+    "formal_rounds": 5,
+    "development_formal_rounds": 3,
+    "capture": "Every filtered I/P frame, original anchor and padded references, motion fields, unchanged full LUTs, rebuilt reduced-range LUTs, expected full output",
+    "timing": "Planning, compensation, fusion and any checked-window verification; excludes capture, I/O, supplied table construction, auditing and hashing",
+    "audit": "All pixels once per method and tolerance; full and full4 must match captured pixels; certified methods must satisfy tolerance",
+    "aggregation": "Median of paired per-round summed frame-time changes, then equal-content means"
+  },
+  "settings": {
+    "filter_qp": 27,
+    "filter_base_range": 2,
+    "intra_range_increment": 1,
+    "filtered_types": "I and P only; dedicated MCTF lowres ME fields; original lookahead planes and cost caches remain unchanged",
+    "strengths": {
+      "I": 1.05,
+      "P": 0.63
+    },
+    "budget": false,
+    "confidence": false,
+    "adaptation": false,
+    "kernel": "Exact eight-pixel NEON for every main method; four-pixel full control",
+    "off_control": "Unmodified pinned upstream x264 executable, with no MCTF options"
+  },
+  "failure_policy": "Stop on decode/frame mismatch, nondeterminism, changed binary/source, invalid arithmetic, or certificate violation. Preserve failed attempts; no outcome-based rerun or exclusion.",
+  "concurrency": "One encoder or replay at a time. No compilation, sanitizer runs, PDF rendering or plotting during measured jobs.",
+  "statistical_claim": false
+}

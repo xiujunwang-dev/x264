@@ -1,0 +1,109 @@
+{
+  "date_local": "2026-10-28",
+  "claim_policy": "Describe the derived condition and measured constrained tradeoff; do not assert first-in-literature priority or rule out equivalence from an inaccessible full text.",
+  "verified_fulltexts": [
+    {
+      "doi": "10.1109/LSP.2013.2250280",
+      "title": "Accelerated Bilateral Filtering with Block Skipping",
+      "evidence": "../mctf-submission-verification-20261028/literature/block_skipping_spl2013.pdf",
+      "overlap": "Extrema-based skipping is established.",
+      "distinction": "Inspected p3 III.C Eq8 uses block/neighborhood intensity extrema for PBFIC skipping; it does not state this unchanged-LUT, whole-temporal-reference, integer-output certificate."
+    },
+    {
+      "doi": "10.1109/TIP.2016.2548363",
+      "title": "Fast and Provably Accurate Bilateral Filtering",
+      "overlap": "Worst-case bilateral-filter output error guarantees are established.",
+      "distinction": "Its Gaussian-polynomial approximation differs from dropping entire predictions while preserving implemented retained LUT entries; no claim that error guarantees themselves are new."
+    },
+    {
+      "doi": "10.1117/12.2681958",
+      "title": "Encoder-aware motion compensated temporal filtering for video compression",
+      "overlap": "Weight/window adaptation and ME simplification are established.",
+      "distinction": "The proposed technical object is the fixed integer operator omission certificate; general adaptive reference/window reduction is not claimed as new."
+    }
+  ],
+  "recent_abstract_only": [
+    {
+      "doi": "10.1109/TCSVT.2024.3393721",
+      "official_abstract": "https://scholars.cityu.edu.hk/en/publications/enhanced-motion-compensated-temporal-filter-for-vvenc/",
+      "verified_mechanisms": "Multi-hypothesis aggregation; motion-vector variance and texture-dependent weights.",
+      "fulltext_obtained": false
+    },
+    {
+      "doi": "10.1109/DCC62719.2025.00063",
+      "note": "Content-aware, DCC2025, one page. Distinct publication from ICME2025.",
+      "fulltext_obtained": false
+    },
+    {
+      "doi": "10.1109/ICME59968.2025.11210061",
+      "note": "Content-adaptive, ICME2025, six pages. Do not conflate the author list or mechanism with the DCC item.",
+      "fulltext_obtained": false
+    },
+    {
+      "doi": "10.1109/ISCAS66217.2026.11562433",
+      "note": "Lightweight MCTF component in broader rate-distortion-decoding-complexity work. Exact component comparisons remain unresolved.",
+      "fulltext_obtained": false
+    },
+    {
+      "doi": "10.1109/PCS56426.2022.10018056",
+      "fulltext_obtained": false
+    }
+  ],
+  "error_analysis_lead": {
+    "doi": "10.1109/LSP.2014.2353694",
+    "title": "Quantitative Error Analysis of Bilateral Filtering",
+    "primary_metadata": "../mctf-submission-verification-20261028/literature/quantitative_error_spl2015_crossref.json",
+    "fulltext_obtained": false,
+    "additional_attempt": "Focused exact-title PDF search exposed official IEEE PDF. Navigation redirected to document page; curl official PDF returned HTTP418. No technical conclusions inferred from snippets, no paywall bypass."
+  },
+  "fractional_programming": {
+    "doi": "10.1287/mnsc.13.7.492",
+    "official_publisher": "https://pubsonline.informs.org/doi/pdf/10.1287/mnsc.13.7.492",
+    "inspected": "Publisher metadata and abstract; finite discrete correctness proof derived in this package.",
+    "claim": "Dinkelbach optimization is credited established prior work, not a novelty claim."
+  },
+  "remaining_requirement": "An author should complete equation-level comparison of closest missing fulltexts before claiming novelty is established. User has no local PDFs; available lawful public routes have not yielded these files.",
+  "author": "Xiujun Wang",
+  "platform": "Official x264 r3223 plus isolated native MCTF extension",
+  "new_contribution": "A retained-denominator interval envelope strictly includes the radius-only support condition for admissible integer tables. No global priority conclusion follows from the mathematical inclusion alone.",
+  "new_public_leads": [
+    {
+      "title": "Advanced video coding technologies by exploiting motion information",
+      "author": "Xi Xie",
+      "year": 2024,
+      "official_record": "https://scholars.cityu.edu.hk/en/studentTheses/advanced-video-coding-technologies-by-exploiting-motion-informati/",
+      "fulltext_link": "https://lbms03.cityu.edu.hk/theses/ftt/phd-cs-237859359.pdf",
+      "access_status": "Redirects to a copyright acceptance page. Not accepted, downloaded or inspected. Do not bypass the gate. Official abstract describes an EMCTF-related first part but supplies no equation-level comparison."
+    }
+  ],
+  "bibliographic_updates": [
+    {
+      "doi": "10.1109/LSP.2014.2353694",
+      "volume": 22,
+      "issue": 2,
+      "pages": "202-206",
+      "year": 2015,
+      "metadata_url": "https://dblp.org/rec/journals/spl/AnBBS15.html",
+      "formula_level_fulltext_verified": false
+    },
+    {
+      "doi": "10.1109/LSP.2013.2250280",
+      "volume": 20,
+      "issue": 5,
+      "pages": "419-422",
+      "year": 2013,
+      "metadata_url": "https://tiangroup.engr.tamu.edu/publications/"
+    }
+  ],
+  "x264_round_access_checks": {
+    "date": "2026-10-28",
+    "official_ieee_documents": [
+      "https://ieeexplore.ieee.org/document/10572000/",
+      "https://ieeexplore.ieee.org/document/11210061/",
+      "https://ieeexplore.ieee.org/document/6892949/"
+    ],
+    "result": "EMCTF/CAMCTF direct pages returned a JavaScript robot-verification gate; SPL2015 page unavailable through the read tool. No gate bypass attempted. Focused public author-site searches did not yield the three full texts.",
+    "author_site_checked": "https://www.cs.cityu.edu.hk/~shiqwang/publications.html",
+    "abstract_status": "Public metadata/abstracts support only stated broad mechanisms. Formula-level non-equivalence remains unresolved."
+  }
+}

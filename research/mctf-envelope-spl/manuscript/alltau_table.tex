@@ -1,0 +1,17 @@
+\begin{table}[H]\centering
+\caption{All nine replay methods. Each entry is an equal-content mean percentage change relative to full eight-pixel filtering.}\label{tab:alltau}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrrrr}\toprule
+& \multicolumn{3}{c}{Time (\%)} & \multicolumn{3}{c}{Work (\%)}\\
+Method & $\tau=1$ & $\tau=2$ & $\tau=3$ & $\tau=1$ & $\tau=2$ & $\tau=3$\\\midrule
+Full (8 pixel) & +0.00 & +0.00 & +0.00 & +0.00 & +0.00 & +0.00\\
+Extrema & -0.21 & -21.20 & -43.15 & +0.00 & -23.54 & -48.08\\
+Simple radius & +0.04 & -22.03 & -44.39 & +0.00 & -23.54 & -48.50\\
+Tight radius & -0.11 & -23.32 & -44.81 & +0.00 & -24.96 & -48.79\\
+Envelope & +0.15 & -21.75 & -45.31 & -0.14 & -24.96 & -50.21\\
+Range, fixed LUT & -43.22 & -43.95 & -44.55 & -48.36 & -48.36 & -48.36\\
+Range, rebuilt LUT & -44.05 & -44.28 & -44.51 & -48.36 & -48.36 & -48.36\\
+Range with check & +57.17 & +74.72 & +74.97 & +51.64 & +51.64 & +51.64\\
+Full (4 pixel) & +67.69 & +67.97 & +68.24 & +0.00 & +0.00 & +0.00\\
+\bottomrule\end{tabular}
+\end{table}

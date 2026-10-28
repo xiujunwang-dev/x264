@@ -1,0 +1,1 @@
+{"passed":true,"exhaustive_relaxed_comparisons":146750002,"random_pixel_comparisons":2000000,"support_dominance_checks":535,"strict_improvement_cases":27,"bins":16,"slopes":[2,4,8,16,32,64,128,255]}

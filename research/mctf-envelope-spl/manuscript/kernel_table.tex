@@ -1,0 +1,13 @@
+\begin{table}[t]\centering
+\caption{Fixed-state x264 replay, $\tau=2$. Equal-content means of time and work changes against full eight-pixel filtering; maximum error and violating pixels pooled over all contents.}\label{tab:kernel}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrr}\toprule
+Method & Time (\%) & Work (\%) & $|e|_{\max}$ & Viol.\\\midrule
+Extrema & -21.20 & -23.54 & 2 & 0\\
+Simple radius & -22.03 & -23.54 & 2 & 0\\
+Tight radius & -23.32 & -24.96 & 2 & 0\\
+Envelope & -21.75 & -24.96 & 2 & 0\\
+Range rebuilt & -44.28 & -48.36 & 3 & 1432\\
+Range checked & +74.72 & +51.64 & 2 & 0\\
+\bottomrule\end{tabular}
+\end{table}

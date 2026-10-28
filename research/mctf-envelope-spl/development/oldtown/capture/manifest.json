@@ -1,0 +1,177 @@
+{
+  "command": [
+    "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/capture/x264",
+    "--preset",
+    "medium",
+    "--threads",
+    "1",
+    "--sync-lookahead",
+    "0",
+    "--lookahead-threads",
+    "1",
+    "--bframes",
+    "3",
+    "--rc-lookahead",
+    "20",
+    "--keyint",
+    "60",
+    "--min-keyint",
+    "25",
+    "--scenecut",
+    "40",
+    "--frames",
+    "120",
+    "--mctf-method",
+    "1",
+    "--mctf-range",
+    "2",
+    "--mctf-kernel",
+    "8",
+    "--mctf-tau",
+    "2",
+    "--mctf-qp",
+    "27",
+    "--log-level",
+    "error",
+    "--no-progress",
+    "--crf",
+    "27",
+    "-o",
+    "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/development/oldtown/capture/capture.264",
+    "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/sources/oldtown.y4m"
+  ],
+  "bitstream_sha256": "b43f3ec2469db61a2da73ef39da658816e5ce6f027facb2ac2cf19032269b8ce",
+  "matches_full": false,
+  "source_sha256": "68bb1fed8f0de13bf7152a505f5a7051aebfdccd5a1e5b1defb32b5e02e963f4",
+  "frames": 120,
+  "snapshots": {
+    "frame-000000.bin": {
+      "bytes": 5053704,
+      "sha256": "e69f25e7b5da81ba9fd66fccf5a4bda147fe3893b6514ea0bd45eec5ca669b26"
+    },
+    "frame-000004.bin": {
+      "bytes": 6121808,
+      "sha256": "1466e6e6384d55e00daa474a6e6311b53d33b2d5430ea26f531efb20135230d8"
+    },
+    "frame-000008.bin": {
+      "bytes": 6121808,
+      "sha256": "b0f9755d243b08a0d5bacd47af10522f76fc7dee384150fa09666affa358b497"
+    },
+    "frame-000012.bin": {
+      "bytes": 6121808,
+      "sha256": "5d280b1aaf8f8fb3f74b09bea74fd8d03ea53974f74acea5714b4abb0a01432d"
+    },
+    "frame-000016.bin": {
+      "bytes": 6121808,
+      "sha256": "8da7e1b8bf706d9ffe266b8ccdc6a1c8089aaec2aa0c0a74236bffe7a525ca23"
+    },
+    "frame-000020.bin": {
+      "bytes": 6121808,
+      "sha256": "d9e46e1e07ceec8be90b54c9a8dc052ee98a921000843bc265623a1ebcf26dbc"
+    },
+    "frame-000024.bin": {
+      "bytes": 6121808,
+      "sha256": "3e4e49490f63d84e71c002969690b469fa86d19c5707fa593dd2944ef98b1b2a"
+    },
+    "frame-000028.bin": {
+      "bytes": 6121808,
+      "sha256": "b454532e0b441139895a170f661732be78fe05ac211eb1b4313f2e51e07c40bb"
+    },
+    "frame-000032.bin": {
+      "bytes": 6121808,
+      "sha256": "6f25a523157d5abe40687271862381fe91da3a8d9f21083b502f0acfac3cc357"
+    },
+    "frame-000036.bin": {
+      "bytes": 6121808,
+      "sha256": "ea4fd6adcae047595b044ce6aba9e857594703a1151b5d51cd1400d78a09d917"
+    },
+    "frame-000040.bin": {
+      "bytes": 6121808,
+      "sha256": "87b10593bacda4f1dfbf560f34ce0a5925a59f474ed5334e1706b990f594e847"
+    },
+    "frame-000044.bin": {
+      "bytes": 6121808,
+      "sha256": "7bd8f1f70929761d0f92b7c24625bbef374fca289b97f33ba23907c283b8d896"
+    },
+    "frame-000048.bin": {
+      "bytes": 6121808,
+      "sha256": "9f14c9ef8b9a2aaa049e75c1a3fa80f0046c0701fc61134e62c02e16074ff539"
+    },
+    "frame-000052.bin": {
+      "bytes": 6121808,
+      "sha256": "668f1aac733f822d50828f1e0ba9d4adbbf62a1f0124f5fc101442a14b4b6137"
+    },
+    "frame-000056.bin": {
+      "bytes": 6121808,
+      "sha256": "6876aba93e8a539f3ea13379118759ad19b11a20413f699e3a3274b889d47b33"
+    },
+    "frame-000059.bin": {
+      "bytes": 6121808,
+      "sha256": "781dc0d88da668c6c47d5192b62665418480f4bec9b8e164813fcb409f0b7105"
+    },
+    "frame-000060.bin": {
+      "bytes": 6121808,
+      "sha256": "7c9a9036203d46e498e5b55dd6ed9ed0b827b4cad02cf15f5c36fedfba5bf60d"
+    },
+    "frame-000064.bin": {
+      "bytes": 6121808,
+      "sha256": "8392421f9dfdd1d75b1c7ab5174d9185fe583e01df29aa40b5e3fd0c2a493643"
+    },
+    "frame-000068.bin": {
+      "bytes": 6121808,
+      "sha256": "ad9f301b9b82ce0cf325487cfd0d2729883620dcbd6c4bb761f348cbe2522c19"
+    },
+    "frame-000072.bin": {
+      "bytes": 6121808,
+      "sha256": "7a867bb52a1b3aebcd8e28cf5e3ed2d56a86bdbd753e8e656b72a73b491d311b"
+    },
+    "frame-000076.bin": {
+      "bytes": 6121808,
+      "sha256": "85e69313e145ccff5f50c6d9a3bfa366eacd9703b90d6a2196a72dc639785895"
+    },
+    "frame-000080.bin": {
+      "bytes": 6121808,
+      "sha256": "c531efcc972b1876ee7c3bcc5d4b815393404bce4a222da4f6ef72dad3e16d56"
+    },
+    "frame-000084.bin": {
+      "bytes": 6121808,
+      "sha256": "45690fe8161ec336b2a91c9949f647799928780863d5f20699bd5c2b8daf1f5b"
+    },
+    "frame-000088.bin": {
+      "bytes": 6121808,
+      "sha256": "f8ec893f4bf69e80e45cdd4684e85dff974b99c413e232b491210bf44515885a"
+    },
+    "frame-000092.bin": {
+      "bytes": 6121808,
+      "sha256": "2773e3580c2eca91a4972681a88f82c44bbe5705d981ca9fc996c9503627be8e"
+    },
+    "frame-000096.bin": {
+      "bytes": 6121808,
+      "sha256": "e87801fefa95a5003efc20cd1b07d9b25016f1cb343e9e15ef487c51a1816de4"
+    },
+    "frame-000100.bin": {
+      "bytes": 6121808,
+      "sha256": "3166618f5ef0bccd8d33f5597a1c33ae82b485ae00f2be3de4ea9c129679a08e"
+    },
+    "frame-000104.bin": {
+      "bytes": 6121808,
+      "sha256": "5842222fdab8c59ff969bcc63c5b0597f03090af3f398def4e6b218331ce7ef5"
+    },
+    "frame-000108.bin": {
+      "bytes": 6121808,
+      "sha256": "b99975edb61ad361a2432e8cb35220279a6c1676b30c5754c62ec5bebb648f3e"
+    },
+    "frame-000112.bin": {
+      "bytes": 6121808,
+      "sha256": "cac580579782c30067228f03044ea8780b4b61d9509f68b9984a407db293a195"
+    },
+    "frame-000116.bin": {
+      "bytes": 6121808,
+      "sha256": "29314c7c04b3442a38519ebee45b1f02cd873f60b97ae2f531ba45880cbc9f05"
+    },
+    "frame-000119.bin": {
+      "bytes": 3985600,
+      "sha256": "b731193758e5096eea84b4e3ce459bd8d1e83a43e2495dadb2c8a54b4db471c8"
+    }
+  }
+}

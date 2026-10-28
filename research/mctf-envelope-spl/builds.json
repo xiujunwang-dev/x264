@@ -1,0 +1,82 @@
+{
+  "upstream": {
+    "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/upstream/x264",
+    "sha256": "6a62a1975e5c58df9c68ea59bff3f5e8829f58857859e98935d71e31d0bb6409",
+    "configure_command": [
+      "./configure",
+      "--host=aarch64-apple-darwin",
+      "--bit-depth=8",
+      "--chroma-format=420",
+      "--enable-static",
+      "--disable-opencl",
+      "--disable-lavf",
+      "--disable-swscale",
+      "--disable-ffms",
+      "--disable-avs",
+      "--disable-gpac"
+    ],
+    "config_mak_sha256": "0e6ba87e8765e77c2fa0453d6092a6bc82cfe42d9b9f701889885c8a5b63293e",
+    "version": "x264 0.164.3223 0480cb0\nbuilt on Oct 28 2026, clang: 21.0.0 (clang-2100.1.1.101)\nx264 configuration: --chroma-format=i420\nlibx264 configuration: --chroma-format=i420\nx264 license: GPL version 2 or later\n"
+  },
+  "source": {
+    "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/source/x264",
+    "sha256": "ec43f61098709d3f6e62784dc35a8003a00edd8088a998d6df42c5769c079ca8",
+    "configure_command": [
+      "./configure",
+      "--host=aarch64-apple-darwin",
+      "--bit-depth=8",
+      "--chroma-format=420",
+      "--enable-static",
+      "--disable-opencl",
+      "--disable-lavf",
+      "--disable-swscale",
+      "--disable-ffms",
+      "--disable-avs",
+      "--disable-gpac"
+    ],
+    "config_mak_sha256": "0e6ba87e8765e77c2fa0453d6092a6bc82cfe42d9b9f701889885c8a5b63293e",
+    "version": "x264 0.164.3223 0480cb0\nbuilt on Oct 28 2026, clang: 21.0.0 (clang-2100.1.1.101)\nx264 configuration: --chroma-format=i420\nlibx264 configuration: --chroma-format=i420\nx264 license: GPL version 2 or later\n"
+  },
+  "capture": {
+    "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/capture/x264",
+    "sha256": "5e539d6e5a3fb54fcd0a8703b01203a6a0e97a44e22b8dcec746cd62b1d7965d",
+    "configure_command": [
+      "./configure",
+      "--host=aarch64-apple-darwin",
+      "--bit-depth=8",
+      "--chroma-format=420",
+      "--enable-static",
+      "--disable-opencl",
+      "--disable-lavf",
+      "--disable-swscale",
+      "--disable-ffms",
+      "--disable-avs",
+      "--disable-gpac",
+      "--extra-cflags=-DX264_MCTF_CAPTURE=1"
+    ],
+    "config_mak_sha256": "9081bc1ffb710e6eee46a56ad07b05a132585981abe0864aefc0b7c19d5ff9f1",
+    "version": "x264 0.164.3223 0480cb0\nbuilt on Oct 28 2026, clang: 21.0.0 (clang-2100.1.1.101)\nx264 configuration: --chroma-format=i420\nlibx264 configuration: --chroma-format=i420\nx264 license: GPL version 2 or later\n"
+  },
+  "sanitizer": {
+    "path": "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/sanitizer/x264",
+    "sha256": "f7172246ec779ffaa61755866f39fa0454b926439202afba1e237ee7b134d7f2",
+    "configure_command": [
+      "./configure",
+      "--host=aarch64-apple-darwin",
+      "--bit-depth=8",
+      "--chroma-format=420",
+      "--enable-static",
+      "--disable-opencl",
+      "--disable-lavf",
+      "--disable-swscale",
+      "--disable-ffms",
+      "--disable-avs",
+      "--disable-gpac",
+      "--disable-asm",
+      "--extra-cflags=-O1 -g -fsanitize=address -fno-sanitize-recover=all",
+      "--extra-ldflags=-fsanitize=address"
+    ],
+    "config_mak_sha256": "ce72256c25f1a7e29db5709f88d84413968659e4ba35f78d6932782310641184",
+    "version": "x264 0.164.3223 0480cb0\nbuilt on Oct 28 2026, clang: 21.0.0 (clang-2100.1.1.101)\nx264 configuration: --chroma-format=i420\nlibx264 configuration: --chroma-format=i420\nx264 license: GPL version 2 or later\n"
+  }
+}

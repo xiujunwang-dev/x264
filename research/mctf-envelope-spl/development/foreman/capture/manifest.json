@@ -1,0 +1,465 @@
+{
+  "command": [
+    "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/capture/x264",
+    "--preset",
+    "medium",
+    "--threads",
+    "1",
+    "--sync-lookahead",
+    "0",
+    "--lookahead-threads",
+    "1",
+    "--bframes",
+    "3",
+    "--rc-lookahead",
+    "20",
+    "--keyint",
+    "60",
+    "--min-keyint",
+    "25",
+    "--scenecut",
+    "40",
+    "--frames",
+    "300",
+    "--mctf-method",
+    "1",
+    "--mctf-range",
+    "2",
+    "--mctf-kernel",
+    "8",
+    "--mctf-tau",
+    "2",
+    "--mctf-qp",
+    "27",
+    "--log-level",
+    "error",
+    "--no-progress",
+    "--crf",
+    "27",
+    "-o",
+    "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/development/foreman/capture/capture.264",
+    "/Users/soldierwang/Desktop/work_code/s265/research/mctf-x264-20261028/sources/foreman.y4m"
+  ],
+  "bitstream_sha256": "63519558ae2b10f93247d093542341ecbaf983d7b6b656af590458c88a2eba1a",
+  "matches_full": false,
+  "source_sha256": "b0e3c35eff9fe1da91521a02eb9f0e3ef4bc5aec341ecef1567cd87f1711267b",
+  "frames": 300,
+  "snapshots": {
+    "frame-000000.bin": {
+      "bytes": 653016,
+      "sha256": "49ad0c2b3b7e7a60be44fefd4f5e8bdaf6ec62e3abdd4b91185a722bec4f1ed1"
+    },
+    "frame-000004.bin": {
+      "bytes": 801040,
+      "sha256": "5c4fa08c7e3ad2944f79e75e5c7b9784c7e422d47a0dfd935f3ebfb6ebbfc83a"
+    },
+    "frame-000008.bin": {
+      "bytes": 801040,
+      "sha256": "22fb0aeeb7f189feab65d3f6f2baf57ae9ea9f5449bb62f2295a64d3533b6e5a"
+    },
+    "frame-000012.bin": {
+      "bytes": 801040,
+      "sha256": "4f3279d4800af7bdf332734bc06f7b15d0798ccc6cc8e0dc00f796c5747b2ee7"
+    },
+    "frame-000016.bin": {
+      "bytes": 801040,
+      "sha256": "b99db6ab7da30209459cb4051aa102ebee0f51567c2da4cef9e12b8da8eb44c2"
+    },
+    "frame-000020.bin": {
+      "bytes": 801040,
+      "sha256": "38264c4a044dcc1764e6761042d8356c2f23126aaed755229cf0b39016186516"
+    },
+    "frame-000024.bin": {
+      "bytes": 801040,
+      "sha256": "31b25d50a513323ae5df2026434cbb463bb09b7505c3b4ea3030927f59e6a68c"
+    },
+    "frame-000028.bin": {
+      "bytes": 801040,
+      "sha256": "e8d1186701b351f0bca43ea3ff45820b800216e60a4b06691cba4ac263021fcd"
+    },
+    "frame-000031.bin": {
+      "bytes": 801040,
+      "sha256": "51db17181da124d2d0932148a777cf869f53a2c9c06252091e639c3f02bbe1fe"
+    },
+    "frame-000035.bin": {
+      "bytes": 801040,
+      "sha256": "8b51e2535c7d701e9381e9ba9d4e3480753899f41e119615cc501faa2e9af270"
+    },
+    "frame-000039.bin": {
+      "bytes": 801040,
+      "sha256": "c33dcb5d231b1c73eb12d7c016bacfef25957abde3f796298070a6bd2f24763f"
+    },
+    "frame-000043.bin": {
+      "bytes": 801040,
+      "sha256": "89fbb52d75433a79526d8d05195e516456a2e0952a5ab4aa63fb48cd6c6f916f"
+    },
+    "frame-000047.bin": {
+      "bytes": 801040,
+      "sha256": "0b8515815e4ce15c0750b66e91943bafc82108b25c92359334647f5d86d26c8a"
+    },
+    "frame-000051.bin": {
+      "bytes": 801040,
+      "sha256": "836922a6ce238181ff496f75adebfd90eb24d8899dad919d998978742a192d5a"
+    },
+    "frame-000055.bin": {
+      "bytes": 801040,
+      "sha256": "2cea5a8d912ef11af6a991c6e7a04c755f11cf561bfc54363c6e0531a10907d4"
+    },
+    "frame-000059.bin": {
+      "bytes": 801040,
+      "sha256": "1d4b39a93b712558abd857279a3adb14b2af62d6e2e06800afd4fa09b6da647a"
+    },
+    "frame-000060.bin": {
+      "bytes": 801040,
+      "sha256": "78d0a060c06507f67ef04030a7449843542b00ddd231b78477866c56cede3042"
+    },
+    "frame-000064.bin": {
+      "bytes": 801040,
+      "sha256": "d939543d3b6d179d36a817cf6bb1f48b0cdd0fa85e045cae262508b782f850d5"
+    },
+    "frame-000068.bin": {
+      "bytes": 801040,
+      "sha256": "3a832016abe6c3f0d7dff8b342f790a7fb6d8a01cc83ca8cbc6c1b0641dfc396"
+    },
+    "frame-000072.bin": {
+      "bytes": 801040,
+      "sha256": "6125cfc4544badb02d8bc554f604020b0e3a02e74e200b80f6ee3c9e5e11732b"
+    },
+    "frame-000076.bin": {
+      "bytes": 801040,
+      "sha256": "436c66ff858cff4f7236ba55f3db71a6bbc098f6d19cde09ef5386ae09059efd"
+    },
+    "frame-000080.bin": {
+      "bytes": 801040,
+      "sha256": "fc053647b356af0ba277f12361129a355513c82e27f287de4390c2ef300b4334"
+    },
+    "frame-000084.bin": {
+      "bytes": 801040,
+      "sha256": "e2dacc961480686b2f769f7ada170debfdf9b4818976a4a4e7108d09f275e89d"
+    },
+    "frame-000088.bin": {
+      "bytes": 801040,
+      "sha256": "5eaf6d917a2d40a9f183f27febf880ea4178fccf8d289230c71b886a8bccfe13"
+    },
+    "frame-000092.bin": {
+      "bytes": 801040,
+      "sha256": "a981767f9d48ea39826b752f8e0ff46d10b2448e661afbd3d35da687aad78c91"
+    },
+    "frame-000096.bin": {
+      "bytes": 801040,
+      "sha256": "f7bee6b101c97f27cf85b8592b2b906e0d8ff0b0ad49a66ca7495226630d93e8"
+    },
+    "frame-000100.bin": {
+      "bytes": 801040,
+      "sha256": "1bde4216d17d2c412ed433f33987d78c1f5cead02f89082de6de59076fab46f6"
+    },
+    "frame-000104.bin": {
+      "bytes": 801040,
+      "sha256": "2c63add32f8ac2af0d6161654344a83fb33b9b6c0e3ed0991136007676945017"
+    },
+    "frame-000108.bin": {
+      "bytes": 801040,
+      "sha256": "81d44c5ba281b074b01200179f29ffd221f785488f45e9f48d656c9f44276d26"
+    },
+    "frame-000112.bin": {
+      "bytes": 801040,
+      "sha256": "db1233adcab24ecfcfb5179cdbadef3768f85e819b8ccf50ee316e39bc326011"
+    },
+    "frame-000116.bin": {
+      "bytes": 801040,
+      "sha256": "6ca8e6d624f8dcdc84dc36177a66d0e1782196610312f0543b92c0a790840df8"
+    },
+    "frame-000119.bin": {
+      "bytes": 801040,
+      "sha256": "4c2f005e62e97e353fdf6ee4cbc1540f7a6d2d0e3a9e11bd34bc86e4fba03eea"
+    },
+    "frame-000120.bin": {
+      "bytes": 801040,
+      "sha256": "c6886da02280d8cd624b1643f1e5ee103c7366c2c5c8824e4f5c908b74a90ef8"
+    },
+    "frame-000124.bin": {
+      "bytes": 801040,
+      "sha256": "13c236391fdc0da541e5fe0a88d8701a27e4c018b88fd6bbf9282a98a37cb98a"
+    },
+    "frame-000128.bin": {
+      "bytes": 801040,
+      "sha256": "235873c647ee30f2c94d6c1a05ae8a3f53141e502d10cd0f692ac24bb0357565"
+    },
+    "frame-000132.bin": {
+      "bytes": 801040,
+      "sha256": "f5d4e0e09453797e4362a305cc72e8ddbcc00c2b785aa9c8fc3dd0a64d40ab09"
+    },
+    "frame-000136.bin": {
+      "bytes": 801040,
+      "sha256": "e1f228fc49bf84f116dd996369abaa4316885a51032e8f4bc009668513e1784e"
+    },
+    "frame-000140.bin": {
+      "bytes": 801040,
+      "sha256": "78222d33f1139d96825d0c17126b47e8764094452a89ec6088b6358717fc6d74"
+    },
+    "frame-000144.bin": {
+      "bytes": 801040,
+      "sha256": "a15c9c89ceba1e9171652f4fa1430f62bfaf404f0d18455845ea0e7377cb71ab"
+    },
+    "frame-000148.bin": {
+      "bytes": 801040,
+      "sha256": "c299eaa1f039c4f2d64e2bac8c334f22fbed694c99f16a1a9b9a0018859e256a"
+    },
+    "frame-000152.bin": {
+      "bytes": 801040,
+      "sha256": "9f8ed451a3be127b3d5f3c4a1342795556096f914a62b268183c931d69855925"
+    },
+    "frame-000156.bin": {
+      "bytes": 801040,
+      "sha256": "7ed15274de4dd5fd6fe656c97720da48c42be566484050d9f68e86a5628f9ca2"
+    },
+    "frame-000160.bin": {
+      "bytes": 801040,
+      "sha256": "3a36472e0e41eb9bb4af64f2484d19ae7ca34a4228d8ed8dbbb8555ff0df9045"
+    },
+    "frame-000164.bin": {
+      "bytes": 801040,
+      "sha256": "6ebfa72494feea3645dc403c95af4e89d7e75f6d268fdd97f6a6ec1ee7a25742"
+    },
+    "frame-000168.bin": {
+      "bytes": 801040,
+      "sha256": "e73b7bde289bb729ff4dac6d2e77ec97e39dd0df638a9a045d6fb422c97d0990"
+    },
+    "frame-000172.bin": {
+      "bytes": 801040,
+      "sha256": "2afadd985dda2a655e4a71c1941a6456a4c08108913730d9dca6cb1be33051bf"
+    },
+    "frame-000174.bin": {
+      "bytes": 801040,
+      "sha256": "9202be7e0c16498198ff630c2479e8eda67b13bc972b5b37c6feeecba548f7b7"
+    },
+    "frame-000176.bin": {
+      "bytes": 801040,
+      "sha256": "6eb5dbd865bfee4567fa7ca091ae879930ed88b587513075774e1aa786fc46c4"
+    },
+    "frame-000178.bin": {
+      "bytes": 801040,
+      "sha256": "f6bbd90c24214f55e2791e927558ca13cbb95f6342e91b0198e1111a32f0953d"
+    },
+    "frame-000179.bin": {
+      "bytes": 653016,
+      "sha256": "20581a288f26c70391d30187553577f1f29f71916c6abeb1d3103c0e9ddf59a0"
+    },
+    "frame-000180.bin": {
+      "bytes": 801040,
+      "sha256": "60e6c2e4416bf6ad1c3053b3292042de30c24e2cf4a36c60454112d4ff1df248"
+    },
+    "frame-000181.bin": {
+      "bytes": 653016,
+      "sha256": "3e3a371339d8727c37ba9804e0e2d615e3f0e70c4387f22ccc2fd9af9c3fa823"
+    },
+    "frame-000182.bin": {
+      "bytes": 653016,
+      "sha256": "77fc386d65f42cc3c544cd4da754be2342dc6a5bfb6703c7fbab43cfa41eb63f"
+    },
+    "frame-000183.bin": {
+      "bytes": 653016,
+      "sha256": "b33aa83e008322bec5a30b2779f8b89fbe5c61a0aba2a14a9b097146edecd4dd"
+    },
+    "frame-000184.bin": {
+      "bytes": 653016,
+      "sha256": "d4e5746b020d3776e2240149f2f9f4f686a2cfd26cfeb9e9a4d2afcbed886e0f"
+    },
+    "frame-000185.bin": {
+      "bytes": 653016,
+      "sha256": "bb12bc202af011d1e2cb4c2ef5b59d167af1a409bfad15aec22dd77b0a80a4aa"
+    },
+    "frame-000187.bin": {
+      "bytes": 801040,
+      "sha256": "b95d5b3796bb4b3561e069c62b9865ce994aa4fd55cd04aa84eb0c793483c787"
+    },
+    "frame-000188.bin": {
+      "bytes": 653016,
+      "sha256": "8137469c48f5a66965a9c27ab88e1445b6a8c24bc986e823aa93e8f3ea896b99"
+    },
+    "frame-000189.bin": {
+      "bytes": 653016,
+      "sha256": "fa2c7912f63a1b5f5620cb0cde634bc7198d9392d76069f87d6b93a669cfca23"
+    },
+    "frame-000190.bin": {
+      "bytes": 653016,
+      "sha256": "d210edfa23da527da2131d5532b641df7f0e4f6236800452897d61fdd19ed928"
+    },
+    "frame-000191.bin": {
+      "bytes": 653016,
+      "sha256": "8138c508d7e35cce0fcaf09e1f4a5a89ea0a252e757718199256022730d2a32a"
+    },
+    "frame-000192.bin": {
+      "bytes": 653016,
+      "sha256": "3a3f81948295a8e06c420e359d3594bbbdb97d8abd46b1e5a07a10db88374d34"
+    },
+    "frame-000193.bin": {
+      "bytes": 653016,
+      "sha256": "92f775daae160ce5da3b4e0d30a0c5fc6e2971050f02ec49a016d2692ba06494"
+    },
+    "frame-000194.bin": {
+      "bytes": 653016,
+      "sha256": "c35d6d6e5b218efbc6719bd9b28391b0db6346d57f798066bb432cb36140e5a0"
+    },
+    "frame-000198.bin": {
+      "bytes": 801040,
+      "sha256": "92b7099f06749c7ef65f39c4f7ef70466f092ac7034273f2452a509b073ddc33"
+    },
+    "frame-000199.bin": {
+      "bytes": 653016,
+      "sha256": "1bf4e15ec7d52bc3183aba8907a73146eba89b9e2ee8a6d15bd2f1cf94acb72d"
+    },
+    "frame-000200.bin": {
+      "bytes": 653016,
+      "sha256": "ad81ef9b1cf6100a851aeddd55f1e5d0039052e5189d22cfcfedaa8e6e614c0b"
+    },
+    "frame-000201.bin": {
+      "bytes": 653016,
+      "sha256": "8efdbaf8f3a8f1eb4339b2b9c8c6ae524b0b49d4842282aa5635837e45e75ed6"
+    },
+    "frame-000202.bin": {
+      "bytes": 653016,
+      "sha256": "54af94c3fad8f9122cb97db687c6f32b9b85ad1d8bf1508bc40697fa6e9850cc"
+    },
+    "frame-000203.bin": {
+      "bytes": 653016,
+      "sha256": "913bceccc66fe3ba19da5500f688f9077b463faa3390e204e6e016b3b8962c19"
+    },
+    "frame-000204.bin": {
+      "bytes": 653016,
+      "sha256": "cdf84c3fb8e4ec393a431c7249bf715ee4b126475856d9782184f73709dc7895"
+    },
+    "frame-000205.bin": {
+      "bytes": 653016,
+      "sha256": "27da4747a04094d56ea73cb625a5a350313f987374d4149094a9d7ed20f786d4"
+    },
+    "frame-000206.bin": {
+      "bytes": 653016,
+      "sha256": "bf04c4428aa3733d3c7689b97c50baef2154448222625200dcfedd982d3a10e6"
+    },
+    "frame-000207.bin": {
+      "bytes": 653016,
+      "sha256": "e3816606aea4807088fab9583cf9c98e1cadf082a66adfbe19d9718e2f3c2b5e"
+    },
+    "frame-000208.bin": {
+      "bytes": 653016,
+      "sha256": "9fe2bb4d789ffcefb73d904e103c209fa2f028a7780c7adf75ca8417312c81f0"
+    },
+    "frame-000209.bin": {
+      "bytes": 653016,
+      "sha256": "c1d7393786a269363f249a7be9bee98680b07d91c1e1d82c72d75791cbafb457"
+    },
+    "frame-000210.bin": {
+      "bytes": 653016,
+      "sha256": "694ed72e5e3c88a9b4376598be1137b25c9dfdd02ea2bbe479bdf310a634a03b"
+    },
+    "frame-000211.bin": {
+      "bytes": 653016,
+      "sha256": "b9d3650ffcef70658b04b943c72d7bb5a087621ab71c9cb7097f97f6b18e8395"
+    },
+    "frame-000212.bin": {
+      "bytes": 653016,
+      "sha256": "a8999164ec6cb8c538a5186f95425b2a86b06836bbb2bb4055c704ec68c5df33"
+    },
+    "frame-000213.bin": {
+      "bytes": 653016,
+      "sha256": "bc95b08bfa9c88b0fca2f096ff83eb1661d266f3116901b093c2c79cf41f49a1"
+    },
+    "frame-000214.bin": {
+      "bytes": 653016,
+      "sha256": "fbf249f3f457056220c496bf211c0b38dd8fa832cf7eb411bc40960331d94954"
+    },
+    "frame-000217.bin": {
+      "bytes": 801040,
+      "sha256": "5b8d4e558b4c96438d750ae81278fb7dff6031393714db9dacac8c0be3aadcd2"
+    },
+    "frame-000221.bin": {
+      "bytes": 801040,
+      "sha256": "847ad51bed8a95c79a57f8cdade4fafca50fb120e8e7f794f2226a0bb602c17c"
+    },
+    "frame-000225.bin": {
+      "bytes": 801040,
+      "sha256": "8456e64547555289968409986a90085af271e24c6b947a5793cb3127abe0d73c"
+    },
+    "frame-000229.bin": {
+      "bytes": 801040,
+      "sha256": "5176c1df305824842b215ea64ca1c8a98e6854f3cd4981e3c5b99ab25f1549be"
+    },
+    "frame-000233.bin": {
+      "bytes": 801040,
+      "sha256": "b5923980eacb1e2324ed863b2085e126ecae17a6d4a14ee2a9de43e75784847d"
+    },
+    "frame-000237.bin": {
+      "bytes": 801040,
+      "sha256": "c46a44b97f928e88f71e141c9444f7b5f5772a8fa1390403e86577adb4f04015"
+    },
+    "frame-000239.bin": {
+      "bytes": 801040,
+      "sha256": "f5c9ceb5b7fbaf39dd792542f11711184873f5c9a8446ffb2014951dc56fe7a9"
+    },
+    "frame-000240.bin": {
+      "bytes": 801040,
+      "sha256": "4358274aac0d9afba9169903ea9c481895a115aba09a9a072239868ce40b5d6d"
+    },
+    "frame-000244.bin": {
+      "bytes": 801040,
+      "sha256": "78ff3ebb0fa375af19ee4813d88344befb4a04453f9ea201ba27d78d3962ce4f"
+    },
+    "frame-000248.bin": {
+      "bytes": 801040,
+      "sha256": "b10f0021952f42a10126af263db46fb01e288856456160cce257844dff030bb6"
+    },
+    "frame-000252.bin": {
+      "bytes": 801040,
+      "sha256": "81ab4e6e7cf793e8dee7a7fbb119e41c1b811cc936a39248f405b4b0969b5e65"
+    },
+    "frame-000256.bin": {
+      "bytes": 801040,
+      "sha256": "0e657bb16c362d82e216bfafd1c997347f8281998764acdb5a0222eec303064a"
+    },
+    "frame-000260.bin": {
+      "bytes": 801040,
+      "sha256": "f7796b1d080c192b9c2af16f61dd5728fd3248bb3602ebfb4023083d395f970e"
+    },
+    "frame-000264.bin": {
+      "bytes": 801040,
+      "sha256": "71014e1e609049eb4cdf7802a4283a6f47fae8e21e4b1e268967adc60625f579"
+    },
+    "frame-000268.bin": {
+      "bytes": 801040,
+      "sha256": "1199f4b7fcbbdcbe2cd9f45c687b28958ad603c6dedb0bfdd4d8b08e9248ee3c"
+    },
+    "frame-000272.bin": {
+      "bytes": 801040,
+      "sha256": "a649780d15e6bd3210224a9989665e581584260110c1bade32898cf3236abb2b"
+    },
+    "frame-000276.bin": {
+      "bytes": 801040,
+      "sha256": "e4caf2fa411cb26893db0122895106c84a773777cf252bbb22dba6b8465d858c"
+    },
+    "frame-000280.bin": {
+      "bytes": 801040,
+      "sha256": "ccf136dc29b55a929fe49656cf7c6ce23764e97ab4692f5baf824bfc2e1d6abc"
+    },
+    "frame-000284.bin": {
+      "bytes": 801040,
+      "sha256": "5b281e01efd6504c845b54915716291d8fe7ede3cbfe9dc06cd3582ea73e9660"
+    },
+    "frame-000288.bin": {
+      "bytes": 801040,
+      "sha256": "e96b1e15f2e184a81a1faee31c4a3e138e43754aa972791765aa4303502edb28"
+    },
+    "frame-000292.bin": {
+      "bytes": 801040,
+      "sha256": "e4256b0f03827794aa97739cf5435e8cb4db45992a6238612e1b69c5c20388ba"
+    },
+    "frame-000296.bin": {
+      "bytes": 801040,
+      "sha256": "6dc7dfa3784e612d16ac7aff56372ca4de1b6fb78bc269db23e6727af09b27d1"
+    },
+    "frame-000299.bin": {
+      "bytes": 504992,
+      "sha256": "75b24b1038321ad59192a76728acaffa3e09e12e49e3cca98ff122179d1d7e89"
+    }
+  }
+}

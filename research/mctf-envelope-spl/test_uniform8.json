@@ -1,0 +1,1 @@
+{"passed":true,"tiles":12000,"scalar_pixel_comparisons":829099,"boundary_pixel_comparisons":147200,"maximum_safe_denominator":8388607,"widths":[1,16],"heights":[1,16],"reference_counts":[0,10],"stride":41,"unaligned":true,"nonuniform_fallback":true,"guard_canaries":true,"in_place":true}

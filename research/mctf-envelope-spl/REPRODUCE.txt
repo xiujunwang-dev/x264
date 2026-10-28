@@ -1,0 +1,122 @@
+Denominator Envelopes for Certified Temporal Reference Omission
+Author: Xiujun Wang
+Affiliation: Independent Researcher
+Email: xiujunwang.dev@gmail.com
+ORCID: https://orcid.org/0009-0006-2773-7936
+Platform: official x264 r3223, 0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee,
+plus the isolated extension in x264_mctf.patch.
+
+1. Scope and dependencies
+
+The measured implementation is native macOS ARM64 with NEON, Apple clang 21,
+make, FFmpeg, Python 3.12+ and NumPy. The paper uses IEEEtran/LaTeX and
+Poppler; checking the PDFs additionally uses pypdf and pdfplumber.
+It filters I/P luma only. It is not an upstream x264 feature or a claim
+about x265, VVenC, 10-bit video or another processor.
+
+Every machine must record its own compiler, platform, binaries and timings.
+Do not overwrite protocol.json, builds.json, source_manifest.json or the
+retained observations to make a new execution appear to be the original.
+
+2. Restore the exact source patch
+
+From this directory, with the appropriate Python executable:
+
+python3 restore_and_build.py --destination /absolute/fresh/x264-review --build
+
+The destination must not already exist. The script verifies upstream.tar,
+applies the complete patch, verifies every manifest source hash, pins version
+metadata in the baseline export, and builds the four configurations. The
+official baseline has the original coding implementation and no MCTF options.
+Its version export is pinned to protect against a parent Git repository.
+The extension uses dedicated MCTF motion fields and a disabled-by-default CLI.
+
+3. Unit and integration correctness
+
+Compile these from this directory using the restored encoder headers:
+
+clang -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -I /absolute/fresh/x264-review/source/encoder test_envelope.c -o /absolute/fresh/test_envelope
+clang -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -I /absolute/fresh/x264-review/source/encoder templates/test_support.c -o /absolute/fresh/test_support
+clang -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -DX264_MCTF_NEON_INTERPOLATION=1 -DX264_MCTF_NEON_NORMALIZE=1 -DX264_MCTF_PRIOR_CONTROL=1 -I /absolute/fresh/x264-review/source/encoder test_uniform8.c -o /absolute/fresh/test_uniform8
+
+Run each binary and preserve stdout/stderr. Original completed results are
+test_envelope.json, test_support.json and test_uniform8.json. Integration
+commands and comparisons are recorded in integration_validation.json;
+validate_integration.py can be run only in a fresh cloned study directory
+with matching source/upstream/sanitizer builds and no validation directory.
+Full-encoder validation uses ASan; upstream unaligned access triggers UBSan.
+Only the certificate/kernel unit tests are claimed ASan/UBSan-clean.
+
+4. Inputs
+
+Fetch exact originals from https://media.xiph.org/video/derf/y4m/:
+blue_sky_1080p25.y4m, pedestrian_area_1080p25.y4m, crowd_run_1080p50.y4m.
+Original bytes, dimensions, frame counts and SHA-256 are in protocol.json.
+Use all frames: 217, 375 and 500. Never silently truncate or substitute.
+Development inputs are foreman.y4m, mobile.y4m (300 frames each) and a
+120-frame oldtown.y4m export; their hashes are also in protocol.json.
+All six contents were observed previously. The original new study was a
+frozen x264 replication; it is not independent unobserved-content validation.
+
+5. Original full study and portable reruns
+
+run_study.py records every encoder command and strict decoded metric. It
+checks the frozen binary and input hashes before proceeding and rejects
+existing study directories without --resume. It performs seven methods,
+one warmup, one four-CRF curve, and two extra CRF-27 runs: 147 complete
+encodes. It then captures every filtered I/P frame and runs the three
+tolerances. It does not allow an unrecorded partial attempt to be reused.
+
+For a fresh rerun, use prepare_replication.py after restoring the four builds:
+
+python3 prepare_replication.py --build-directory /absolute/fresh/x264-review --inputs /absolute/input-directory --study /absolute/fresh/study
+python3 -u /absolute/fresh/study/run_study.py
+
+The script runs the sanitizer unit tests and integration checks before
+creating a new plan derived from the original settings, and records fresh
+build and code hashes. It does not overwrite the historical freeze.
+It verifies all six original source hashes before linking/copying inputs.
+For every complete method, tau=2 is the frozen primary setting. All replay
+tolerances 1,2,3 are mandatory. Do not retune after reading these outcomes.
+One encoder/replay runs at a time; do not compile, render, plot or run other
+benchmarks concurrently. Timed replay includes planning/compensation/fusion;
+it supplies full motion fields and does not count ME. Complete time includes
+omitted-ME savings, process startup and original-file I/O.
+
+6. Recompute analysis and documents
+
+The public code export includes generated table/figure inputs. Full paper
+sources and PDFs are supplied separately in the author/journal package.
+Document compilation below requires those paper sources; numerical analysis
+and fresh performance replication do not require the paper sources.
+
+After all timed jobs complete, from the relevant study directory:
+
+python3 summarize.py --development
+python3 summarize.py
+python3 write_results.py
+python3 write_report.py
+python3 build_pdfs.py
+python3 check_package.py
+
+summarize.py audits every prescribed observation, repeated output, work
+dominance, strict metric record and capture/full-stream equality. Original
+summary.json reports every source, operating point, timing and tolerance.
+check_package.py additionally hashes retained videos, streams, snapshots,
+code and binaries; PDF author, page constraints, abstract and text are checked.
+Every final PDF must also be rendered and visually reviewed. No automatic
+test certifies scientific novelty or acceptance by a journal.
+
+The compact review bundle omits large videos, snapshots and encoded streams;
+the local study retains those originals. A full rerun reconstructs snapshots
+from the capture build. publication.json records the actual public repository
+and immutable source snapshot once publication is verified. No DOI is claimed.
+The author has deferred the closest-paper formula comparisons recorded in
+literature_audit.json; global novelty remains unverified. Preparing submission
+files does not record independent scientific review or final journal submission.
+
+prepare_sources.py, finish_sources.py, build_all.py and freeze_protocol.py
+are retained migration-history scripts for the original workspace. They
+are not the portable reproduction entry points. Use restore_and_build.py
+and prepare_replication.py as specified above; they require only this
+package, the stated tools, and exact public input files.

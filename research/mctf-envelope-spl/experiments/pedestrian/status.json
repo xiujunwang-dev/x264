@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "source": {
+    "id": "pedestrian",
+    "file": "pedestrian_area_1080p25.y4m",
+    "sha256": "1c18cd50fec7dcfa6087564ed56343a99ff955ecfca70de91a5dbedae329353a",
+    "bytes": 1166402286,
+    "width": 1920,
+    "height": 1080,
+    "frames": 375,
+    "frame_bytes": 3110400,
+    "fps_n": 25,
+    "fps_d": 1,
+    "header": "YUV4MPEG2 W1920 H1080 F25:1 Ip A1:1",
+    "url": "https://media.xiph.org/video/derf/y4m/pedestrian_area_1080p25.y4m"
+  },
+  "completed_jobs": 49,
+  "prescribed_jobs": 49,
+  "completed_utc": "2026-10-28T05:00:09.880414+00:00"
+}
