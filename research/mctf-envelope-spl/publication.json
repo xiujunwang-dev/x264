@@ -4,9 +4,14 @@
   "directory": "research/mctf-envelope-spl",
   "repository_url": "https://github.com/xiujunwang-dev/x264",
   "branch_url": "https://github.com/xiujunwang-dev/x264/tree/mctf-envelope-spl-20261028/research/mctf-envelope-spl",
-  "published": false,
-  "code_commit": null,
-  "code_url": null,
+  "published": true,
+  "code_commit": "276cc23474be179214fcdef524bfcc109de5edb9",
+  "code_url": "https://github.com/xiujunwang-dev/x264/tree/276cc23474be179214fcdef524bfcc109de5edb9/research/mctf-envelope-spl",
   "submission_status": "Prepared locally; not submitted to IEEE SPL",
-  "closest_full_text_review": "Deferred by author; global novelty remains unverified"
+  "closest_full_text_review": "Deferred by author; global novelty remains unverified",
+  "verified_utc": "2026-10-28T08:36:57.438320+00:00",
+  "publicly_accessible": true,
+  "source_tree": "833a01858c4ee342a825f893e962fdac48542e18",
+  "unauthenticated_download_patch_sha256": "37968ba935277379d02d5b62eccd923e3842d219d649b425bbe68c6275598ac7",
+  "public_manuscript": false
 }

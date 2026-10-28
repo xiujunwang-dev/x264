@@ -21,7 +21,7 @@ def main():
     skip_roots = {'source', 'upstream', 'capture', 'sanitizer', 'sources', '__pycache__',
                   'patch_rebuild', 'patch_restore', 'review_bundle_manifest.json'}
     skip_names = {'review_bundle_manifest.json', 'authoring.log', 'delivery.json',
-                  'render_before_percent_fix.json'}
+                  'delivery_checks.json', 'submission_package.json', 'render_before_percent_fix.json'}
     for path in HERE.rglob('*'):
         if not path.is_file():
             continue

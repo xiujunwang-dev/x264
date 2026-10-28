@@ -15,6 +15,11 @@ encoder sources. This directory contains the official archive, full patch,
 source hashes, tests, replication scripts and compact experimental records.
 `source_manifest.json` fixes all 278 encoder source files.
 
+Fixed code snapshot:
+[`276cc23474be`](https://github.com/xiujunwang-dev/x264/tree/276cc23474be179214fcdef524bfcc109de5edb9/research/mctf-envelope-spl).
+The current research branch may add delivery metadata and packaging updates;
+the measured encoder sources and frozen protocol remain unchanged.
+
 ## Reproduce
 
 Read [REPRODUCE.txt](REPRODUCE.txt) for the full protocol, dependencies,

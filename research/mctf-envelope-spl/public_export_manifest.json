@@ -3,7 +3,7 @@
   "source_files_verified": 278,
   "frozen_protocol_sha256": "51619f834f79b9fc8b4fd2a309bfbb6ab441e8e8221b1e1df1a5ede3f87a9621",
   "patch_sha256": "37968ba935277379d02d5b62eccd923e3842d219d649b425bbe68c6275598ac7",
-  "credential_scan_files": 849,
+  "credential_scan_files": 850,
   "public_manuscript": false,
   "files": [
     {
@@ -1398,8 +1398,8 @@
     },
     {
       "path": "research/mctf-envelope-spl/README.md",
-      "sha256": "dff0fc462227ed3d805b68c0350e8ff6ee07261e07c4ad8a44c5e5fd60fafe0f",
-      "bytes": 4686
+      "sha256": "ea48e9bf779215bd338c5b1d6c505ec8cf8bf0806f506b029c47a899c1641ff0",
+      "bytes": 4983
     },
     {
       "path": "research/mctf-envelope-spl/REPRODUCE.txt",
@@ -1423,8 +1423,8 @@
     },
     {
       "path": "research/mctf-envelope-spl/check_package.py",
-      "sha256": "2b3902d0cedb6ab67c6ef92821dc3a6cec0d77cd7f77a0502c6f7818ec6aac5d",
-      "bytes": 8206
+      "sha256": "b4b0207e576b5fd883edfb1f1a40fcc6d8280626635d015cfa50818d0b30583d",
+      "bytes": 8274
     },
     {
       "path": "research/mctf-envelope-spl/development/foreman/capture/capture.log",
@@ -3312,6 +3312,11 @@
       "bytes": 576
     },
     {
+      "path": "research/mctf-envelope-spl/github_publication_validation.json",
+      "sha256": "2b108143ff3dbf617967383a8ca0337d3be4628d6f8d0a2e08a4ce6ea6a139fb",
+      "bytes": 636
+    },
+    {
       "path": "research/mctf-envelope-spl/helpers.py",
       "sha256": "13e2466ee6805c4d4b18c6d3987af2d01bc190b3995ebd850c2cb396ce2e3dfc",
       "bytes": 3956
@@ -3328,8 +3333,8 @@
     },
     {
       "path": "research/mctf-envelope-spl/make_review_bundle.py",
-      "sha256": "5954a8ea92bfd28cd7c55656011dcfbccf1ac20afefbb0f5e0edada30577e24a",
-      "bytes": 3604
+      "sha256": "0c19f95aedc666f7471ffc8acc5e6d0c038eea90ab6d7bbb7d5639433da6180b",
+      "bytes": 3655
     },
     {
       "path": "research/mctf-envelope-spl/manuscript/alltau_table.tex",
@@ -3398,8 +3403,8 @@
     },
     {
       "path": "research/mctf-envelope-spl/publication.json",
-      "sha256": "f1d3c2b0f7acd5f78dd53fcf3f0aaa4fd7bfe1e2d0305af5f204d2e5b2c5c067",
-      "bytes": 530
+      "sha256": "6e5b34aef005ad6172c1f594204fd90e8696dd4a1b2236cc4601b0e9d5f07d41",
+      "bytes": 963
     },
     {
       "path": "research/mctf-envelope-spl/replay.c",

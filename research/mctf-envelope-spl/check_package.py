@@ -95,7 +95,8 @@ def main():
         if 'submission' in name:
             assert 'Review draft' not in text and 'Not submitted.' not in text
         if not name.endswith('supplement'):
-            assert 'xiujunwang.dev@gmail.com' in text and '0009-0006-2773-7936' in text
+            compact_text = re.sub(r'\s+', '', text)
+            assert 'xiujunwang.dev@gmail.com' in compact_text and '0009-0006-2773-7936' in compact_text
             assert len(texts) <= 5
             reference = next(i for i, page in enumerate(texts) if re.search(r'^\s*R\s*E\s*F\s*E\s*R\s*E\s*N\s*C\s*E\s*S\s*$', page, re.I | re.M))
             assert reference <= 4
